@@ -1,16 +1,20 @@
 import puppeteer from "puppeteer";
 
+// Launches a browser and scrapes clean text from a UMD page
 export const scrapeUMD = async () => {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
 
+  // Navigate to the target page and wait for network activity to finish
   await page.goto("https://umd.edu/student-life/athletics-and-recreation", {
     waitUntil: "networkidle2",
   });
 
   try {
+    // Wait for the main content container to appear
     await page.waitForSelector("#main", { timeout: 3000 });
 
+    // Execute scraping logic
     const result = await page.evaluate(() => {
       let text: string = "";
 
@@ -59,10 +63,12 @@ export const scrapeUMD = async () => {
         }
       }
 
+      // Starts collecting text from the #main element or falls back to body
       function collectText(): string {
         const root = document.querySelector("#main") || document.body;
         collectTextFrom(root);
 
+        // Clean up whitespace formatting and return the scraped text
         return text
           .replace(/\s+\n/g, "\n")
           .replace(/\n\s+/g, "\n")
