@@ -1,0 +1,22 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import { PORT } from "./config/env";
+import chatRouter from "./routes/chat";
+
+const app = express();
+
+// Middleware
+app.use(express.json());
+app.use(cors());
+app.use(helmet());
+app.use(morgan("dev"));
+
+// Routes
+app.use("/api/chat", chatRouter);
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
+});
