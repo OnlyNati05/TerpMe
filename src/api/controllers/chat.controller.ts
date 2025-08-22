@@ -4,7 +4,8 @@ import { scrapeUMD } from "../services/scraping.service";
 export const sendChat = async (req: Request, res: Response) => {
   const { message } = req.body;
 
-  const scrapedText = await scrapeUMD();
+  const scrapedText = await scrapeUMD("https://umd.edu/student-life/athletics-and-recreation");
+  console.log(scrapedText);
 
   res.status(200).json({ Info: `${scrapedText}` });
 };
