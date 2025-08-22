@@ -5,4 +5,21 @@ It extracts clean and structured text, evenutally to be used in a RAG (Retrieval
 
 ## ⚠️ Status: Work In Progress
 
-This project is not yet production-ready. It's under active development, and functionality may change or break.
+Not ready for use yet — development in progress.
+
+## Planned Features
+
+- [x] Basic Puppeteer scraping
+- [ ] Text chunking
+- [ ] Embedding with OpenAI
+- [ ] Vector DB
+- [ ] RAG-based Q&A endpoint
+- [ ] Web interface
+
+## Tech Stack
+
+- TypeScript
+- Node.js
+- Express.js
+- Puppeteer
+- RAG architecture (coming soon)
