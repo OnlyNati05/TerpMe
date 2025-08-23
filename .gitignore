@@ -13,3 +13,4 @@ dist/
 
 # macOS system file
 .DS_Store
+/src/api/generated/prisma

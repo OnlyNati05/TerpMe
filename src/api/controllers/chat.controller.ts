@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { scrapeUMD } from "../services/scraping.service";
+import { runScraper } from "../services/scraperLoop";
 
 export const sendChat = async (req: Request, res: Response) => {
   const { message } = req.body;
 
-  const scrapedText = await scrapeUMD("https://umd.edu/student-life/athletics-and-recreation");
-  console.log(scrapedText);
+  const scrapedText = await runScraper();
 
-  res.status(200).json({ Info: `${scrapedText}` });
+  res.status(200).json({ Info: "Success" });
 };
 
 export const getHealth = async (req: Request, res: Response) => {
