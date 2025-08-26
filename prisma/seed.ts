@@ -8,6 +8,7 @@ async function main() {
     "https://umd.edu/admissions",
     "https://umd.edu/visit",
     "https://admissions.umd.edu/apply/application-deadlines",
+    "https://admissions.umd.edu/page/know-before-you-go",
   ];
 
   for (const url of urls) {

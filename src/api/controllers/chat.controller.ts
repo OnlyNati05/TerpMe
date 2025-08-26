@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
-import { scrapeUMD } from "../services/scraping.service";
-import { runScraper } from "../services/scraperLoop";
+import { runScraper } from "../services/scraper.loop.service";
 
 export const sendChat = async (req: Request, res: Response) => {
   const { message } = req.body;
 
-  const scrapedText = await runScraper();
+  await runScraper();
 
   res.status(200).json({ Info: "Success" });
 };

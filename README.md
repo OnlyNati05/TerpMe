@@ -10,7 +10,7 @@ Not ready for use yet — development in progress.
 ## Planned Features
 
 - [x] Basic Puppeteer scraping
-- [ ] Text chunking
+- [x] Text chunking
 - [ ] Embedding with OpenAI
 - [ ] Vector DB
 - [ ] RAG-based Q&A endpoint

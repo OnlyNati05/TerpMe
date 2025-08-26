@@ -135,12 +135,12 @@ export const scrapeUMD = async (umdURL: string) => {
     const chunksArr = processChunks(result);
 
     // Properly format the array to be processed by the database
-    const dbMetadata = chunksArr.map((c) => ({
+    const chunks = chunksArr.map((c) => ({
       url: umdURL,
       content: c,
     }));
 
-    return dbMetadata;
+    return chunks;
   } catch (err) {
     await browser.close();
     console.log("Scraping Error:", err);
