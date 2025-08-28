@@ -18,4 +18,9 @@ model Page {
   url String @unique
   lastScraped DateTime? 
   status String?
+  contentHash String?
+  lastIndexAt DateTime?
+  chunkCount Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

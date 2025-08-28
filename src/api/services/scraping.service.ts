@@ -3,7 +3,7 @@ import puppeteer from "puppeteer";
 import { processChunks } from "../utils/processor";
 
 // Launches a browser and scrapes clean text from a UMD page
-export const scrapeUMD = async (umdURL: string) => {
+export const scrapeUrl = async (umdURL: string) => {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
 
