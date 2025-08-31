@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { deleteUrlFromIndex, deleteUrlsFromIndex } from "../services/indexer.service";
 
 const prisma = new PrismaClient();
 
@@ -31,9 +32,15 @@ export function normalizeUrl(u: string): string | null {
   }
 }
 
+/**
+ * POST /api/pages
+ * Body options:
+ *    - {url: string} -> Add only these URLs to Prisma database
+ */
+
 // Add a single page to Prisma database
 export async function addPage(req: Request, res: Response) {
-  const norm = normalizeUrl(req.body?.urls);
+  const norm = normalizeUrl(req.body?.url);
   if (!norm) {
     return res.status(400).json({ error: "Invalid URL" });
   }
@@ -73,5 +80,89 @@ export async function addPagesBulk(req: Request, res: Response) {
     unique: unique.length,
     inserted: result.count,
     skippedDuplicates: unique.length - result.count,
+  });
+}
+
+/**
+ * DELETE /api/pages
+ * Body options:
+ *    - {url: string} -> Add only these URLs to Prisma database
+ */
+
+export async function deletePage(req: Request, res: Response) {
+  const input = req.body?.url;
+
+  if (typeof input !== "string") {
+    return res.status(400).json({ error: "Body must include { url: string } " });
+  }
+
+  // Normalize URL
+  const url = normalizeUrl(input);
+
+  if (!url) {
+    return res.status(400).json({ error: "Invalid Url" });
+  }
+
+  //Delete from Qdrant DB
+  const result = await deleteUrlFromIndex(url);
+
+  if (!result.ok) {
+    await prisma.page.updateMany({ where: { url }, data: { status: "delete_pending" } });
+    return res
+      .status(400)
+      .json({ error: "Failed to delete vector in index", details: result.error });
+  }
+
+  // Delete from Prisma DB
+  const dbResult = await prisma.page.deleteMany({ where: { url } });
+  return res.status(200).json({
+    received: 1,
+    deletedFromDb: dbResult.count,
+    indexer: result,
+  });
+}
+
+/**
+ * DELETE /api/pages
+ * Body options:
+ *    - {urls: string[]} -> Add only these URLs to Prisma database
+ */
+
+export async function deletePagesBulk(req: Request, res: Response) {
+  const input = req.body?.urls;
+
+  // Validate input
+  if (!Array.isArray(input) || !input.every((u) => typeof u === "string")) {
+    return res.status(400).json({ error: "Body must include { urls: string[] }" });
+  }
+
+  // Normalize and dedupe
+  const normalized = input.map(normalizeUrl).filter((u): u is string => !!u);
+  const unique = Array.from(new Set(normalized));
+  if (!unique.length) {
+    return res.status(400).json({ error: "No valid URLs provided" });
+  }
+
+  // Delete from Qdrant DB
+  const result = await deleteUrlsFromIndex(unique);
+
+  if (!result.ok) {
+    await prisma.page.updateMany({
+      where: { url: { in: unique } },
+      data: { status: "delete_pending" },
+    });
+    return res
+      .status(502)
+      .json({ error: "Failed to delete vectors in index", details: result.error });
+  }
+
+  // Delete from Prisma DB
+  const dbResult = await prisma.page.deleteMany({ where: { url: { in: unique } } });
+  return res.status(200).json({
+    received: input.length,
+    valid: normalized.length,
+    unique: unique.length,
+    deletedFromDb: dbResult.count,
+    indexer: result,
   });
 }

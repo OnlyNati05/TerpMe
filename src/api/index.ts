@@ -24,3 +24,12 @@ app.use("/api/chat", chatRouter);
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
+
+/**
+ * TODO:
+ * add more pages to db
+ * Add input and output limit
+ * better prompt
+ * streaming
+ * frontend
+ * */

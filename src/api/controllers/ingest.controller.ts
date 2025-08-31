@@ -41,7 +41,8 @@ export async function ingestController(req: Request, res: Response) {
   const unique = Array.from(new Set(normalized));
 
   const result = await ingestUrls(urls);
-  return res.status(200).json({
+  const STATUS = result.success === "false" || result.success === "partial" ? 400 : 200;
+  return res.status(STATUS).json({
     received: urls.length,
     valid: normalized.length,
     unique: unique.length,

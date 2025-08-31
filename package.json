@@ -7,7 +7,6 @@
     "dev": "nodemon ./src/api/index.ts",
     "start": "node ./dist/index.js",
     "build": "tsc --build",
-    "seed": "dotenv -e .env.development.local -- ts-node prisma/seed.ts",
     "dev:migrate": "dotenv -e .env.development.local -- prisma migrate dev",
     "dev:generate": "dotenv -e .env.development.local -- prisma generate",
     "prod:migrate": "dotenv -e .env.production.local -- prisma migrate deploy",

@@ -17,13 +17,16 @@ export async function ingestUrls(urls: string[]) {
     reason?: string;
     chunks?: number;
   }> = [];
+  let success = "true";
 
   for (const url of urls) {
     try {
+      console.log("hey 1");
       const result = await scrapeUrl(url);
 
       // If scraper returns an error message
       if (typeof result === "string") {
+        success = "partial";
         report.push({ url, action: "error", reason: result });
         await prisma.page.upsert({
           where: { url },
@@ -32,7 +35,7 @@ export async function ingestUrls(urls: string[]) {
         });
         continue;
       }
-
+      console.log("hey 2");
       const chunks = result as Chunk[];
 
       // No content was scraped
@@ -45,7 +48,7 @@ export async function ingestUrls(urls: string[]) {
         });
         continue;
       }
-
+      console.log("hey 3");
       const newHash = hashChunks(chunks);
       const existing = await prisma.page.findUnique({ where: { url } });
 
@@ -72,7 +75,7 @@ export async function ingestUrls(urls: string[]) {
         report.push({ url, action: "indexed", chunks: upserted });
         continue;
       }
-
+      console.log("hey 4");
       // If content is unchanged -> skip
       if (existing.contentHash === newHash) {
         await prisma.page.update({
@@ -87,7 +90,7 @@ export async function ingestUrls(urls: string[]) {
         });
         continue;
       }
-
+      console.log("hey 5");
       // If content changed -> update/reindex
       const { upserted } = await reindexUrl(url, chunks);
       await prisma.page.update({
@@ -101,6 +104,7 @@ export async function ingestUrls(urls: string[]) {
       });
       report.push({ url, action: "reindexed", chunks: upserted });
     } catch (error: any) {
+      success = "false";
       report.push({ url, action: "error", reason: error?.message ?? String(error) });
 
       await prisma.page.upsert({
@@ -111,5 +115,5 @@ export async function ingestUrls(urls: string[]) {
     }
   }
 
-  return { success: true, report };
+  return { success, report };
 }

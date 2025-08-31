@@ -2,6 +2,9 @@ import { qdrant } from "../lib/qdrant";
 import { embedTexts } from "./embeddings.service";
 import { QDRANT_COLLECTION_NAME, QDRANT_VECTOR_SIZE } from "../config/env";
 import { v5 as uuidv5 } from "uuid";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export type Chunk = { url: string; content: string };
 
@@ -51,12 +54,75 @@ export async function indexChunks(chunks: Chunk[]) {
 // Update chunks for a specific URL
 export async function reindexUrl(url: string, chunks: Chunk[]) {
   // Deletes existing points for this url
-  await qdrant.delete(QDRANT_COLLECTION_NAME, {
-    wait: true,
-    filter: { must: [{ key: "url", match: { value: url } }] },
-  });
+  console.log("hey 6");
+  const u = await prisma.page.findUnique({ where: { url } });
+  if (u?.contentHash === null) {
+    const scoped = chunks.filter((c) => c.url === url);
+    return indexChunks(scoped);
+  } else {
+    await qdrant.delete(QDRANT_COLLECTION_NAME, {
+      wait: true,
+      filter: { must: [{ key: "url", match: { value: url } }] },
+    });
+    // Reinsert with new chunks
+    const scoped = chunks.filter((c) => c.url === url);
+    return indexChunks(scoped);
+  }
+}
 
-  // Reinsert with new chunks
-  const scoped = chunks.filter((c) => c.url === url);
-  return indexChunks(scoped);
+// Delete all vectors in Qdrant that match a single URL
+export async function deleteUrlFromIndex(
+  url: string
+): Promise<{ ok: boolean; error?: string; status?: string; operationId?: number | null }> {
+  try {
+    // Call Qdrant delete with a filter on the "url" payload
+    const resp = await qdrant.delete(QDRANT_COLLECTION_NAME, {
+      wait: true,
+      filter: { must: [{ key: "url", match: { value: url } }] },
+    });
+    return {
+      ok: true,
+      status: resp.status,
+      operationId: resp.operation_id ?? null,
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message ?? "Delete Failed",
+    };
+  }
+}
+
+// Delete all vectors in Qdrant that match any of the given URLs
+export async function deleteUrlsFromIndex(
+  urls: string[]
+): Promise<{ ok: boolean; error?: string; status?: string; operationId?: number | null }> {
+  if (!urls.length) {
+    return { ok: false, error: "No URLs provided" };
+  }
+
+  // Delete the given URLs from Qdrant DB
+  try {
+    const resp = await qdrant.delete(QDRANT_COLLECTION_NAME, {
+      wait: true,
+      filter: {
+        should: urls.map((u) => ({ key: "url", match: { value: u } })),
+        // @ts-expect-error Qdrant REST API uses "minimum_should"
+        minimum_should: 1,
+      },
+    });
+
+    // Return success with operation info
+    return {
+      ok: true,
+      status: resp.status,
+      operationId: resp.operation_id ?? null,
+    };
+  } catch (err: any) {
+    // Return false if error
+    return {
+      ok: false,
+      error: err?.message ?? "Bulk delete failed",
+    };
+  }
 }

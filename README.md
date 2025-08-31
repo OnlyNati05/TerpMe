@@ -19,7 +19,9 @@ Not ready for use yet — development in progress.
 ## Tech Stack
 
 - TypeScript
+- React
+- Next.js
 - Node.js
 - Express.js
-- Puppeteer
-- RAG architecture (coming soon)
+- Prisma (postgresql)
+- Qdrant
