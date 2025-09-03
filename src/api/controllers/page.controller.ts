@@ -86,7 +86,7 @@ export async function addPagesBulk(req: Request, res: Response) {
 /**
  * DELETE /api/pages
  * Body options:
- *    - {url: string} -> Add only these URLs to Prisma database
+ *    - {url: string} -> Delete only this URL from Prisma database
  */
 
 export async function deletePage(req: Request, res: Response) {
@@ -125,7 +125,7 @@ export async function deletePage(req: Request, res: Response) {
 /**
  * DELETE /api/pages
  * Body options:
- *    - {urls: string[]} -> Add only these URLs to Prisma database
+ *    - {urls: string[]} -> Delete only these URLs from Prisma database
  */
 
 export async function deletePagesBulk(req: Request, res: Response) {

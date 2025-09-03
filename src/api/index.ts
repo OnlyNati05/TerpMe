@@ -26,10 +26,27 @@ app.listen(PORT, () => {
 });
 
 /**
- * TODO:
- * add more pages to db
- * Add input and output limit
- * better prompt
- * streaming
- * frontend
+ * Todo:
+ * BACKEND:
+ *  - Crawler for pages (only scrape 2025 pages)
+ *      - Cron Job for scrape and find pages
+ *      - Set certain pages to rescrape daily (news, updates, etc.)
+ *  - Deal with removed pages/links
+ *  - Add to DB
+ *  - Add input and output limit
+ *  - Better prompt
+ *      - Always include resource link
+ * FRONTEND:
+ *  - streaming
+ *  - UI
+ *  - Admin page
+ *  - Main page
+ *  - Chat page
+ *  - Settings page
+ *  - Tokens
+ * FUTURE:
+ *  - Add personalization for user
+ *  - Scrape rate my professor
+ *
+ *
  * */
