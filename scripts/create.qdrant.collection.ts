@@ -8,20 +8,13 @@ async function main() {
 
   // If collection doesnt exist create a new one
   if (!exists) {
-    console.log(`Creating new collection ${QDRANT_COLLECTION_NAME}...`);
-
     await qdrant.createCollection(QDRANT_COLLECTION_NAME, {
       vectors: { size: QDRANT_VECTOR_SIZE, distance: QDRANT_DISTANCE },
     });
-
-    console.log(`Created collection ${QDRANT_COLLECTION_NAME}`);
-  } else {
-    console.log(`Collection ${QDRANT_COLLECTION_NAME} already exists, skipping creation`);
   }
 
   //Get collection and log for verification
   const details = await qdrant.getCollection(QDRANT_COLLECTION_NAME);
-  console.log("Collections is ready: ", JSON.stringify(details, null, 2));
 }
 
 main()

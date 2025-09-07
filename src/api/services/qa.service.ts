@@ -151,6 +151,18 @@ export async function askQuestion(
   const { context, sources } = await buildContext(chunks);
   const history = getConversation(sessionId, conversationId);
 
+  const now = new Date();
+  const today = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+
+  /**
+    const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  */
+
   const messages = [
     ...history,
     {
@@ -158,17 +170,25 @@ export async function askQuestion(
       content:
         `Question: ${question}\n\n` +
         `Context (multiple sources):\n${context}\n` +
-        `Answer using the provided context.` +
-        `Provide a clear, complete answer in full sentences. Include relevant details from the context when possible.`,
+        `Todays Date: ${today}` +
+        `Instructions:
+        - Use only the provided context to answer.
+        - If multiple dates or events are present, choose the one that best matches the user's question and is most recent to Todays Date.
+        - If the question is about the future, prefer upcoming events.
+        - Write in a clear, professional tone.
+        - Responses may be up to 500 tokens if needed. If an answer would require much more than that, summarize instead and end gracefully. 
+        Formatting:
+        - Use **bold** for important names, dates, or key details.
+        - Use bullet points or numbered lists for multiple items.
+        - Keep paragraphs concise (2-3 sentences max).
+        - Always include relevant context details rather than short answers.`,
     },
   ];
-
-  console.log(context);
-
   const completion = await openai.chat.completions.create({
     model: CHAT_MODEL,
     messages,
-    temperature: 0.7,
+    temperature: 0.5,
+    max_completion_tokens: 500,
   });
 
   const answer = completion.choices[0]?.message?.content?.trim() ?? "";

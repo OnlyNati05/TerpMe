@@ -1,0 +1,39 @@
+service: pipeline-job
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  memorySize: 512
+  timeout: 900 # 15 minutes
+  environment:
+    DATABASE_URL: ${ssm:/myapp/prod/DATABASE_URL}
+    QDRANT_URL: ${ssm:/myapp/prod/QDRANT_URL}
+    QDRANT_API_KEY: ${ssm:/myapp/prod/QDRANT_API_KEY}
+    QDRANT_COLLECTION_NAME: ${ssm:/myapp/prod/QDRANT_COLLECTION_NAME}
+    QDRANT_VECTOR_SIZE: ${ssm:/myapp/prod/QDRANT_VECTOR_SIZE}
+    QDRANT_DISTANCE: ${ssm:/myapp/prod/QDRANT_DISTANCE}
+    OPENAI_API_KEY: ${ssm:/myapp/prod/OPENAI_API_KEY}
+    OPENAI_EMBEDDING_MODEL: ${ssm:/myapp/prod/OPENAI_EMBEDDING_MODEL}
+    OPENAI_CHAT_MODEL: ${ssm:/myapp/prod/OPENAI_CHAT_MODEL}
+
+functions:
+  pipeline:
+    handler: dist/cron/runPipeline.handler
+    events:
+      - schedule: cron(0 2 * * ? *) # run every day at 2 AM UTC
+
+build:
+  esbuild: true
+  minify: true
+  exclude:
+    - aws-sdk
+    - "@prisma/client"
+    - ".prisma/client"
+  target: node20
+  platform: node
+
+package:
+  patterns:
+    - "node_modules/.prisma/**"
+    - "node_modules/@prisma/**"

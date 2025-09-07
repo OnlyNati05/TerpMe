@@ -51,25 +51,6 @@ export async function indexChunks(chunks: Chunk[]) {
   return { upserted };
 }
 
-// Update chunks for a specific URL
-export async function reindexUrl(url: string, chunks: Chunk[]) {
-  // Deletes existing points for this url
-  console.log("hey 6");
-  const u = await prisma.page.findUnique({ where: { url } });
-  if (u?.contentHash === null) {
-    const scoped = chunks.filter((c) => c.url === url);
-    return indexChunks(scoped);
-  } else {
-    await qdrant.delete(QDRANT_COLLECTION_NAME, {
-      wait: true,
-      filter: { must: [{ key: "url", match: { value: url } }] },
-    });
-    // Reinsert with new chunks
-    const scoped = chunks.filter((c) => c.url === url);
-    return indexChunks(scoped);
-  }
-}
-
 // Delete all vectors in Qdrant that match a single URL
 export async function deleteUrlFromIndex(
   url: string

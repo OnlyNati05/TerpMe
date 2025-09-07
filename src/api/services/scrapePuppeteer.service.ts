@@ -1,3 +1,7 @@
+/**
+ * IMPORTANT: Because I have changing my scraping logic, i will no longer be using this file
+ * this only exists in case I want to change back to this method of scraping
+ 
 import puppeteer from "puppeteer";
 
 import { processChunks } from "../utils/processor";
@@ -143,7 +147,7 @@ export const scrapePuppeteer = async (umdURL: string) => {
     return chunks;
   } catch (err) {
     await browser.close();
-    console.log("Scraping Error:", err);
     return "Scraping failed";
   }
 };
+*/
