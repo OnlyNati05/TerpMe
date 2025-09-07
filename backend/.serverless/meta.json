@@ -1,0 +1,118 @@
+{
+  "/Users/natnaelabebe/Documents/VS CODES/TerpMe/backend/serverless.yml": {
+    "versionFramework": "4.18.2",
+    "servicePath": "/Users/natnaelabebe/Documents/VS CODES/TerpMe/backend/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "pipeline-job",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs20.x",
+        "region": "us-east-1",
+        "memorySize": 512,
+        "timeout": 900,
+        "environment": {
+          "DATABASE_URL": "postgresql://neondb_owner:npg_Ksyzj2fTRbk8@ep-flat-morning-adjxlp76-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+          "QDRANT_URL": "https://12b2d1e2-177f-4409-9296-81b823d3b28c.us-east-1-1.aws.cloud.qdrant.io",
+          "QDRANT_API_KEY": "<REDACTED>",
+          "QDRANT_COLLECTION_NAME": "umd_docs",
+          "QDRANT_VECTOR_SIZE": "1536",
+          "QDRANT_DISTANCE": "Cosine",
+          "OPENAI_API_KEY": "<REDACTED>",
+          "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
+          "OPENAI_CHAT_MODEL": "gpt-4o-mini"
+        },
+        "stage": "dev",
+        "versionFunctions": true
+      },
+      "functions": {
+        "pipeline": {
+          "handler": "dist/cron/runPipeline.handler",
+          "events": [
+            {
+              "schedule": "cron(0 2 * * ? *)"
+            }
+          ]
+        }
+      },
+      "build": {
+        "esbuild": true,
+        "minify": true,
+        "exclude": [
+          "aws-sdk",
+          "@prisma/client",
+          ".prisma/client"
+        ],
+        "target": "node20",
+        "platform": "node"
+      },
+      "package": {
+        "patterns": [
+          "node_modules/.prisma/**",
+          "node_modules/@prisma/**"
+        ]
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs20.x",
+      "region": "us-east-1",
+      "memorySize": 512,
+      "timeout": 900,
+      "environment": {
+        "DATABASE_URL": "postgresql://neondb_owner:npg_Ksyzj2fTRbk8@ep-flat-morning-adjxlp76-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+        "QDRANT_URL": "https://12b2d1e2-177f-4409-9296-81b823d3b28c.us-east-1-1.aws.cloud.qdrant.io",
+        "QDRANT_API_KEY": "<REDACTED>",
+        "QDRANT_COLLECTION_NAME": "umd_docs",
+        "QDRANT_VECTOR_SIZE": "1536",
+        "QDRANT_DISTANCE": "Cosine",
+        "OPENAI_API_KEY": "<REDACTED>",
+        "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
+        "OPENAI_CHAT_MODEL": "gpt-4o-mini"
+      },
+      "stage": "dev",
+      "versionFunctions": true
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "error": {
+      "message": "Serverless command \"build\" not found. Run \"serverless help\" for a list of all available commands.",
+      "code": "UNRECOGNIZED_CLI_COMMAND"
+    },
+    "serviceRawFile": "service: pipeline-job\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  region: us-east-1\n  memorySize: 512\n  timeout: 900 # 15 minutes\n  environment:\n    DATABASE_URL: ${ssm:/myapp/prod/DATABASE_URL}\n    QDRANT_URL: ${ssm:/myapp/prod/QDRANT_URL}\n    QDRANT_API_KEY: ${ssm:/myapp/prod/QDRANT_API_KEY}\n    QDRANT_COLLECTION_NAME: ${ssm:/myapp/prod/QDRANT_COLLECTION_NAME}\n    QDRANT_VECTOR_SIZE: ${ssm:/myapp/prod/QDRANT_VECTOR_SIZE}\n    QDRANT_DISTANCE: ${ssm:/myapp/prod/QDRANT_DISTANCE}\n    OPENAI_API_KEY: ${ssm:/myapp/prod/OPENAI_API_KEY}\n    OPENAI_EMBEDDING_MODEL: ${ssm:/myapp/prod/OPENAI_EMBEDDING_MODEL}\n    OPENAI_CHAT_MODEL: ${ssm:/myapp/prod/OPENAI_CHAT_MODEL}\n\nfunctions:\n  pipeline:\n    handler: dist/cron/runPipeline.handler\n    events:\n      - schedule: cron(0 2 * * ? *) # run every day at 2 AM UTC\n\nbuild:\n  esbuild: true\n  minify: true\n  exclude:\n    - aws-sdk\n    - \"@prisma/client\"\n    - \".prisma/client\"\n  target: node20\n  platform: node\n\npackage:\n  patterns:\n    - \"node_modules/.prisma/**\"\n    - \"node_modules/@prisma/**\"\n",
+    "command": [
+      "build"
+    ],
+    "options": {},
+    "orgId": "1d4e70e6-0a38-4abf-9a2b-7bf578436b68",
+    "orgName": "terpme",
+    "userId": "LlFvV1BR1Jybhjw6HL",
+    "userName": "terpme",
+    "serviceProviderAwsAccountId": "188897774665",
+    "serviceProviderAwsCfStackName": "pipeline-job-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:188897774665:stack/pipeline-job-dev/59a8fd50-8b5a-11f0-9ee4-0e47978d0a5d",
+    "serviceProviderAwsCfStackCreated": "2025-09-06T19:47:41.711Z",
+    "serviceProviderAwsCfStackUpdated": "2025-09-06T21:03:49.739Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-us-east-1-395e936d-4ba7",
+        "ExportName": "sls-pipeline-job-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "PipelineLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-1:188897774665:function:pipeline-job-dev-pipeline:2",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-pipeline-job-dev-PipelineLambdaFunctionQualifiedArn"
+      }
+    ]
+  }
+}
