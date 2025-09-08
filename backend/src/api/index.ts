@@ -6,6 +6,7 @@ import { PORT } from "./config/env";
 import chatRouter from "./routes/chat";
 import pageRouter from "./routes/page";
 import ingestRouter from "./routes/ingest";
+import conversationRoutes from "./routes/conversations";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(morgan("dev"));
 app.use("/api/pages", pageRouter);
 app.use("/api/ingest", ingestRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/conversations", conversationRoutes);
 
 // Start server
 app.listen(PORT, () => {

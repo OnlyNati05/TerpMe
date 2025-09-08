@@ -9,11 +9,29 @@ datasource db {
 }
 
 model Page {
-  id  Int @id @default(autoincrement())
-  url String @unique
-  status String?
+  id          Int @id @default(autoincrement())
+  url         String @unique
+  status      String?
   lastIndexAt DateTime?
-  chunkCount Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  chunkCount  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  title     String                               
+  userId    String                               
+  messages  Message[]                            
+  createdAt DateTime  @default(now())            
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String                              
+  role           String                           
+  content        String                             
+  createdAt      DateTime     @default(now())        
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
