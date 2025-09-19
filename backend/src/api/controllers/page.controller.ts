@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { deleteUrlFromIndex } from "../services/indexer.service";
-import { deletePagesService } from "../services/page.service";
-
-const prisma = new PrismaClient();
+import { deleteAllPagesService, deletePagesService } from "../services/page.service";
+import { prisma } from "../lib/prisma";
 
 /**
  * POST /api/pages
@@ -81,6 +80,12 @@ export async function deletePage(req: Request, res: Response) {
 export async function deletePagesBulk(req: Request, res: Response) {
   try {
     const input = req.body?.urls;
+
+    if (!input) {
+      const result = await deleteAllPagesService();
+      return res.status(200).json(result);
+    }
+
     if (!Array.isArray(input)) {
       return res.status(400).json({ error: "Body must include { urls: string[] }" });
     }

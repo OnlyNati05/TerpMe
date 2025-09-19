@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { normalizeUrl } from "../controllers/page.controller";
-import { deleteUrlsFromIndex } from "../services/indexer.service";
-
-const prisma = new PrismaClient();
+import { deleteAllFromIndex, deleteUrlsFromIndex } from "../services/indexer.service";
 
 /**
  * Delete pages by URL (used by both API + crawler).
@@ -37,6 +35,32 @@ export async function deletePagesService(urls: string[]) {
     received: urls.length,
     valid: normalized.length,
     unique: unique.length,
+    deletedFromDb: dbResult.count,
+    indexer: result,
+  };
+}
+
+/**
+ * Delete ALL pages (used by both API + crawler).
+ */
+export async function deleteAllPagesService() {
+  // Drop everything from Qdrant
+  const result = await deleteAllFromIndex();
+
+  if (!result.ok) {
+    // If Qdrant failed, mark pages as delete_pending
+    await prisma.page.updateMany({
+      data: { status: "delete_pending" },
+    });
+    return {
+      deletedFromDb: 0,
+      indexerError: result.error,
+    };
+  }
+
+  // Delete all from DB
+  const dbResult = await prisma.page.deleteMany({});
+  return {
     deletedFromDb: dbResult.count,
     indexer: result,
   };

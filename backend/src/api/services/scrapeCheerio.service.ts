@@ -19,8 +19,8 @@ export async function scrapeCheerio(url: string) {
 
     // Grab text elements but exclude navbars/footers/sidebars
     root
-      .find("p, h1, h2, h3, h4, h5, h6, li, section, article")
-      .not("header *, nav *, footer *, aside *")
+      .find("p, h1, h2, h3, h4, h5, h6, li")
+      .not("header *, nav *, footer *, aside *, script, style, noscript, form")
       .each((_, el) => {
         const txt = $(el).text().replace(/\s+/g, " ").trim();
         if (txt) rawChunks.push(txt);

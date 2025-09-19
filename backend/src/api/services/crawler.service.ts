@@ -1,9 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
-import { PrismaClient } from "@prisma/client";
 import { addPagesCrawler } from "../services/page.service";
 
 const parser = new XMLParser();
-const prisma = new PrismaClient();
 
 // Utility: sleep for X ms
 function sleep(ms: number) {
@@ -66,7 +64,7 @@ export async function crawlDbkNews() {
   }
 }
 
-// ---- Crawl umterps.com ----
+// Crawl umterps.com
 export async function crawlUmterps() {
   const sitemapIndex = "https://umterps.com/sitemap.xml";
   const res = await fetch(sitemapIndex);
@@ -96,7 +94,7 @@ export async function crawlUmterps() {
 
     if (childData.urlset?.url) {
       // Only grab the last 300 entries
-      const recent = childData.urlset.url.slice(-300);
+      const recent = childData.urlset.url.slice(-200);
 
       for (const entry of recent) {
         if (entry.loc && entry.loc.includes("/2025/")) {
@@ -114,7 +112,7 @@ export async function crawlUmterps() {
   }
 }
 
-// ---- Config + runner ----
+// Config + runner
 const sites = [
   { domain: "today.umd.edu", crawler: crawlTodayUMD },
   { domain: "dbknews.com", crawler: crawlDbkNews },

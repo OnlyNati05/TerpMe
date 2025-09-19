@@ -3,6 +3,7 @@ import { getHealth, chat } from "../controllers/chat.controller";
 
 const chatRouter = Router();
 
+chatRouter.post("/:conversationId", chat);
 chatRouter.post("/", chat);
 chatRouter.get("/health", getHealth);
 

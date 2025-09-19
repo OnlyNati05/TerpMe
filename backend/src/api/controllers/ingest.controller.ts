@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import { ingestService } from "../services/ingest.service";
 
+/**
+ * POST /api/ingest
+ * Body options:
+ *    - {urls: [string]}
+ */
+
 export async function ingestController(req: Request, res: Response) {
   try {
     const result = await ingestService(req.body?.urls);

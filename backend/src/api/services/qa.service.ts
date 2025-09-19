@@ -1,10 +1,14 @@
 import { qdrant } from "../lib/qdrant";
-import { QDRANT_COLLECTION_NAME } from "../config/env";
+import { QDRANT_COLLECTION_NAME, OPENAI_CHAT_MODEL } from "../config/env";
 import { embedTexts } from "./embeddings.service";
 import { cosineSimilarity } from "../utils/similarity";
 import { openai, CHAT_MODEL } from "../lib/openai";
 import { classifyQuestion } from "./classifier.service";
-import { getConversation, addToConversation } from "./memory.service";
+import * as messageService from "./messages.service";
+import { prisma } from "../lib/prisma";
+
+const MAX_CONTEXT_MESSAGES = 20; // how many messages to keep
+const SUMMARIZE_THRESHOLD = 50; // when to summarize
 
 export type RetrievedChunk = { content: string; url: string; score: number };
 
@@ -79,26 +83,69 @@ export async function buildContext(
   return { context, sources };
 }
 
+async function summarizeMessages(
+  uid: string,
+  conversationId: string,
+  messages: any[]
+): Promise<void> {
+  const textBlock = messages.map((m) => `${m.role}: ${m.content}`).join("\n");
+
+  const completion = await openai.chat.completions.create({
+    model: OPENAI_CHAT_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: "Summarize this chat history in a concise way that preserves important details. ",
+      },
+      { role: "user", content: textBlock },
+    ],
+  });
+
+  const summary = completion.choices[0]?.message?.content ?? "";
+
+  // Append to exisiting summary
+  const convo = await prisma.conversation.findFirst({
+    where: { id: conversationId, userId: uid },
+    select: { summary: true },
+  });
+
+  await prisma.conversation.update({
+    where: { id: conversationId, userId: uid },
+    data: {
+      summary: convo?.summary ? convo.summary + "\n" + summary : summary,
+    },
+  });
+
+  // Mark summarized messages
+  await prisma.message.updateMany({
+    where: {
+      conversationId: conversationId,
+      id: { in: messages.map((m) => m.id) },
+    },
+    data: { summarized: true },
+  });
+}
+
 // Get a general LLM answer (no context), while preserving conversation history.
 async function normalLLMAnswer(
-  question: string,
-  sessionId: string,
-  conversationId: string
+  uid: string,
+  conversationId: string,
+  question: string
 ): Promise<string> {
-  const history = getConversation(sessionId, conversationId);
+  const history = await messageService.listMessages(uid, conversationId);
 
   const completion = await openai.chat.completions.create({
     model: CHAT_MODEL,
-    messages: history.concat({ role: "user", content: question }),
+    messages: [
+      ...history.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+    ],
     temperature: 0.7,
   });
 
   const answer = completion.choices[0]?.message?.content?.trim() ?? "";
-
-  addToConversation(sessionId, conversationId, [
-    { role: "user", content: question },
-    { role: "assistant", content: answer },
-  ]);
 
   return answer;
 }
@@ -112,23 +159,43 @@ async function normalLLMAnswer(
  */
 export async function askQuestion(
   question: string,
-  opts?: { k?: number; sessionId?: string; conversationId?: string }
+  opts: { uid: string; conversationId: string },
+  k?: number
 ): Promise<{
   answer: string;
   sources: string[];
   hitCount: number;
   usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
 }> {
-  const sessionId = opts?.sessionId ?? "defaultUser";
-  const conversationId = opts?.conversationId ?? "defaultConversation";
+  const { uid, conversationId } = opts;
+
+  await messageService.createMessage({
+    uid,
+    conversationId,
+    role: "user",
+    content: question,
+  });
+
+  // Summarization check
+  const unsummarized = await prisma.message.findMany({
+    where: { conversationId, summarized: false },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (unsummarized.length > SUMMARIZE_THRESHOLD) {
+    const oldMessages = unsummarized.slice(0, -MAX_CONTEXT_MESSAGES);
+    if (oldMessages.length > 0) {
+      await summarizeMessages(uid, conversationId, oldMessages);
+    }
+  }
 
   const embedding = await embedQuery(question);
-  const chunks = await searchQdrant(embedding, opts?.k ?? 5);
+  const chunks = await searchQdrant(embedding, k ?? 5);
 
   // If no relevant context chunks found, fallback
   if (chunks.length === 0) {
     const type = await classifyQuestion(question);
-    const generalAnswer = await normalLLMAnswer(question, sessionId, conversationId);
+    const generalAnswer = await normalLLMAnswer(uid, conversationId, question);
 
     if (type === "UMD") {
       return {
@@ -149,26 +216,28 @@ export async function askQuestion(
 
   // Otherwise, build context from chunks
   const { context, sources } = await buildContext(chunks);
-  const history = getConversation(sessionId, conversationId);
+
+  const convo = await prisma.conversation.findFirst({
+    where: { id: conversationId },
+    select: { summary: true },
+  });
+
+  const recentMessages = await prisma.message.findMany({
+    where: { conversationId, summarized: false },
+    orderBy: { createdAt: "asc" },
+    take: MAX_CONTEXT_MESSAGES,
+  });
 
   const now = new Date();
   const today = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
 
-  /**
-    const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  */
-
   const messages = [
-    ...history,
+    ...(convo?.summary
+      ? [{ role: "system" as const, content: `Conversation so far (summary): ${convo.summary}` }]
+      : []),
     {
-      role: "user" as const,
+      role: "system" as const,
       content:
-        `Question: ${question}\n\n` +
         `Context (multiple sources):\n${context}\n` +
         `Todays Date: ${today}` +
         `Instructions:
@@ -183,7 +252,12 @@ export async function askQuestion(
         - Keep paragraphs concise (2-3 sentences max).
         - Always include relevant context details rather than short answers.`,
     },
+    ...recentMessages.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    })),
   ];
+
   const completion = await openai.chat.completions.create({
     model: CHAT_MODEL,
     messages,
@@ -193,10 +267,13 @@ export async function askQuestion(
 
   const answer = completion.choices[0]?.message?.content?.trim() ?? "";
 
-  addToConversation(sessionId, conversationId, [
-    { role: "user", content: question },
-    { role: "assistant", content: answer },
-  ]);
+  // Save assistant reply
+  await messageService.createMessage({
+    uid,
+    conversationId,
+    role: "assistant",
+    content: answer,
+  });
 
   return {
     answer,

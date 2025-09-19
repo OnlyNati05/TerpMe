@@ -2,9 +2,6 @@ import { qdrant } from "../lib/qdrant";
 import { embedTexts } from "./embeddings.service";
 import { QDRANT_COLLECTION_NAME, QDRANT_VECTOR_SIZE } from "../config/env";
 import { v5 as uuidv5 } from "uuid";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 export type Chunk = { url: string; content: string };
 
@@ -105,5 +102,16 @@ export async function deleteUrlsFromIndex(
       ok: false,
       error: err?.message ?? "Bulk delete failed",
     };
+  }
+}
+
+export async function deleteAllFromIndex() {
+  try {
+    const response = await qdrant.delete("umd_docs", {
+      filter: {},
+    });
+    return { ok: true, response };
+  } catch (error: any) {
+    return { ok: false, error: error.message };
   }
 }

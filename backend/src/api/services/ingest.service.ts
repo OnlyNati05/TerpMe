@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { indexChunks, Chunk } from "../services/indexer.service";
 import { scrapeUrl } from "./scraping.service";
 import { normalizeUrl } from "../controllers/page.controller";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma";
 
 export async function ingestUrls(urls: string[]) {
   const report: Array<{
