@@ -3,17 +3,19 @@ import * as conversationService from "../services/conversation.service";
 import { prisma } from "../lib/prisma";
 
 // GET /conversations
+// Only gets all user conversations
 export async function getConversations(req: Request, res: Response) {
-  const uid = req.headers["x-user-token"] as string;
+  const uid = req.cookies?.uid as string;
   if (!uid) return res.status(400).json({ error: "Missing user token" });
 
   const conversations = await conversationService.getUserConversations(uid);
   return res.json(conversations);
 }
 
-// GET /conversations
+// GET /conversations/:id
+// Gets conversation + messages
 export async function getConversationById(req: Request, res: Response) {
-  const uid = req.headers["x-user-token"] as string;
+  const uid = req.cookies?.uid as string;
   const { id } = req.params;
 
   if (!uid) return res.status(400).json({ error: "Missing user token" });
@@ -26,16 +28,22 @@ export async function getConversationById(req: Request, res: Response) {
 
 // POST /conversations
 export async function createConversation(req: Request, res: Response) {
-  const uid = req.headers["x-user-token"] as string;
+  const uid = req.cookies?.uid as string;
   if (!uid) return res.status(400).json({ error: "Missing user token" });
+  const { initialMessage } = req.body;
 
-  const conversation = await conversationService.createConversation(uid);
-  return res.status(201).json(conversation);
+  try {
+    const conversation = await conversationService.createConversation(uid, initialMessage);
+    return res.status(201).json(conversation);
+  } catch (err: any) {
+    console.error("Failed to create conversation:", err);
+    return res.status(500).json({ error: "Failed to create conversation" });
+  }
 }
 
 // PATCH /conversations/:id
 export async function renameConversation(req: Request, res: Response) {
-  const uid = req.headers["x-user-token"] as string;
+  const uid = req.cookies?.uid as string;
   const { id } = req.params;
   const { title } = req.body;
 
@@ -62,7 +70,7 @@ export async function renameConversation(req: Request, res: Response) {
 
 // DELETE /conversations/:id
 export async function deleteConversation(req: Request, res: Response) {
-  const uid = req.headers["x-user-token"] as string;
+  const uid = req.cookies?.uid as string;
   const { id } = req.params;
 
   if (!uid) return res.status(400).json({ error: "Missing user token" });

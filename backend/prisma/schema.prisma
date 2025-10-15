@@ -27,7 +27,8 @@ model Conversation {
   title     String                               
   userId    String
   summary   String?                               
-  messages  Message[]                            
+  messages  Message[]
+  preview   String?                           
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -48,4 +49,10 @@ model UserQuota {
   date      DateTime // day this quota is for
   messages  Int      @default(0)
 }
-
+model Avatar {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @unique
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { generateConversationTitle } from "../utils/titleGenerator";
 
 export async function getConversationById(uid: string, id: string) {
   return prisma.conversation.findFirst({
@@ -15,15 +16,32 @@ export async function getUserConversations(uid: string) {
   return prisma.conversation.findMany({
     where: { userId: uid },
     orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      preview: true,
+    },
   });
 }
 
-export async function createConversation(uid: string) {
+export async function createConversation(uid: string, initialMessage?: string) {
+  const title = await generateConversationTitle(initialMessage?.trim());
+
   return prisma.conversation.create({
     data: {
       userId: uid,
-      title: "New Conversation", // default title
+      title,
+      preview: initialMessage,
+      messages: initialMessage
+        ? {
+            create: {
+              role: "user",
+              content: initialMessage,
+            },
+          }
+        : undefined,
     },
+    include: { messages: true },
   });
 }
 

@@ -1,6 +1,6 @@
 {
   "/Users/natnaelabebe/Documents/VS CODES/TerpMe/backend/serverless.yml": {
-    "versionFramework": "4.18.2",
+    "versionFramework": "4.19.1",
     "servicePath": "/Users/natnaelabebe/Documents/VS CODES/TerpMe/backend/serverless.yml",
     "serviceConfigFileName": "serverless.yml",
     "service": {
@@ -32,7 +32,8 @@
             {
               "schedule": "cron(0 2 * * ? *)"
             }
-          ]
+          ],
+          "name": "pipeline-job-dev-pipeline"
         }
       },
       "build": {
@@ -50,7 +51,8 @@
         "patterns": [
           "node_modules/.prisma/**",
           "node_modules/@prisma/**"
-        ]
+        ],
+        "artifactsS3KeyDirname": "serverless/pipeline-job/dev/code-artifacts"
       }
     },
     "provider": {
@@ -82,15 +84,13 @@
       "serviceProvider": null,
       "instanceParameters": null
     },
-    "error": {
-      "message": "Serverless command \"build\" not found. Run \"serverless help\" for a list of all available commands.",
-      "code": "UNRECOGNIZED_CLI_COMMAND"
-    },
     "serviceRawFile": "service: pipeline-job\n\nprovider:\n  name: aws\n  runtime: nodejs20.x\n  region: us-east-1\n  memorySize: 512\n  timeout: 900 # 15 minutes\n  environment:\n    DATABASE_URL: ${ssm:/myapp/prod/DATABASE_URL}\n    QDRANT_URL: ${ssm:/myapp/prod/QDRANT_URL}\n    QDRANT_API_KEY: ${ssm:/myapp/prod/QDRANT_API_KEY}\n    QDRANT_COLLECTION_NAME: ${ssm:/myapp/prod/QDRANT_COLLECTION_NAME}\n    QDRANT_VECTOR_SIZE: ${ssm:/myapp/prod/QDRANT_VECTOR_SIZE}\n    QDRANT_DISTANCE: ${ssm:/myapp/prod/QDRANT_DISTANCE}\n    OPENAI_API_KEY: ${ssm:/myapp/prod/OPENAI_API_KEY}\n    OPENAI_EMBEDDING_MODEL: ${ssm:/myapp/prod/OPENAI_EMBEDDING_MODEL}\n    OPENAI_CHAT_MODEL: ${ssm:/myapp/prod/OPENAI_CHAT_MODEL}\n\nfunctions:\n  pipeline:\n    handler: dist/cron/runPipeline.handler\n    events:\n      - schedule: cron(0 2 * * ? *) # run every day at 2 AM UTC\n\nbuild:\n  esbuild: true\n  minify: true\n  exclude:\n    - aws-sdk\n    - \"@prisma/client\"\n    - \".prisma/client\"\n  target: node20\n  platform: node\n\npackage:\n  patterns:\n    - \"node_modules/.prisma/**\"\n    - \"node_modules/@prisma/**\"\n",
     "command": [
-      "build"
+      "logs"
     ],
-    "options": {},
+    "options": {
+      "function": "pipeline"
+    },
     "orgId": "1d4e70e6-0a38-4abf-9a2b-7bf578436b68",
     "orgName": "terpme",
     "userId": "LlFvV1BR1Jybhjw6HL",

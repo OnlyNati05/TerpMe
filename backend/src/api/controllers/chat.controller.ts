@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { askQuestion } from "../services/qa.service";
 import { prisma } from "../lib/prisma";
+import { openai } from "../lib/openai";
+import { generateConversationTitle } from "../utils/titleGenerator";
 
 /**
  * POST /api/chat { question, sessionId?, conversationId? }
@@ -12,8 +14,8 @@ const DAILY_LIMIT = 20;
 
 export async function chat(req: Request, res: Response) {
   const raw = req.body?.question;
-  const uid = req.headers["x-user-token"] as string;
-  let conversationId = req.params.conversationId;
+  const uid = req.cookies?.uid as string;
+  let conversationId = req.params.conversationId || req.body.conversationId;
   const k = Number(req.body.k) || 5;
 
   if (typeof raw !== "string" || !raw.trim()) {
@@ -48,20 +50,31 @@ export async function chat(req: Request, res: Response) {
 
   try {
     if (!conversationId) {
+      const title = await generateConversationTitle(raw.trim());
       const convo = await prisma.conversation.create({
         data: {
           userId: uid,
-          title: "New Conversation",
+          title,
         },
       });
       conversationId = convo.id;
     }
-    const result = await askQuestion(raw.trim(), { uid, conversationId }, k);
-    return res.status(200).json({ conversationId, result });
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    let fullAnswer = "";
+
+    await askQuestion(raw.trim(), { uid, conversationId }, k, (delta) => {
+      fullAnswer += delta;
+      res.write(`data: ${delta.replace(/\n/g, "\ndata: ")}\n\n`);
+    });
+    res.write("data: [DONE]\n\n");
+    res.end();
   } catch (err: any) {
-    return res
-      .status(500)
-      .json({ error: "Failed to generate answer", details: err?.message ?? String(err) });
+    res.write(`data: ${JSON.stringify({ error: "Failed to generate answer" })}\n\n`);
+    res.write("data: [DONE]\n\n");
+    res.end();
   }
 }
 

@@ -160,7 +160,8 @@ async function normalLLMAnswer(
 export async function askQuestion(
   question: string,
   opts: { uid: string; conversationId: string },
-  k?: number
+  k?: number,
+  onDelta?: (delta: string) => void
 ): Promise<{
   answer: string;
   sources: string[];
@@ -169,12 +170,40 @@ export async function askQuestion(
 }> {
   const { uid, conversationId } = opts;
 
-  await messageService.createMessage({
-    uid,
-    conversationId,
-    role: "user",
-    content: question,
+  try {
+    const curr_conv = await prisma.conversation.findMany({
+      where: { id: conversationId, userId: uid },
+      include: {
+        messages: {
+          where: { role: "user" },
+        },
+      },
+    });
+
+    if (curr_conv && !(curr_conv[0].messages.length === 1)) {
+      await messageService.createMessage({
+        uid,
+        conversationId,
+        role: "user",
+        content: question,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+  // If first message in chat, add it to preview
+  const converse = await prisma.conversation.findUnique({
+    where: { id: conversationId },
+    select: { preview: true },
   });
+
+  if (!converse?.preview) {
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { preview: question },
+    });
+  }
 
   // Summarization check
   const unsummarized = await prisma.message.findMany({
@@ -263,9 +292,18 @@ export async function askQuestion(
     messages,
     temperature: 0.5,
     max_completion_tokens: 500,
+    stream: true,
   });
 
-  const answer = completion.choices[0]?.message?.content?.trim() ?? "";
+  let answer = "";
+
+  for await (const chunk of completion) {
+    const delta = chunk.choices[0]?.delta?.content || "";
+    if (delta) {
+      answer += delta;
+      if (onDelta) onDelta(delta);
+    }
+  }
 
   // Save assistant reply
   await messageService.createMessage({
@@ -279,6 +317,5 @@ export async function askQuestion(
     answer,
     sources,
     hitCount: chunks.length,
-    usage: completion.usage,
   };
 }
