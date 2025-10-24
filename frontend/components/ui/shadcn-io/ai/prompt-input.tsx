@@ -135,7 +135,7 @@ export const PromptInputButton = ({
 };
 
 export type PromptInputSubmitProps = ComponentProps<typeof Button> & {
-  status?: ChatStatus;
+  status: ChatStatus;
 };
 
 export const PromptInputSubmit = ({
