@@ -13,6 +13,12 @@ import cookieParser from "cookie-parser";
 const app = express();
 
 // Middleware
+
+let allowedOrigin = FRONTEND_URL;
+if (allowedOrigin.endsWith("/")) {
+  allowedOrigin = allowedOrigin.slice(0, -1);
+}
+
 app.use(express.json());
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -29,7 +35,7 @@ app.use((req, res, next) => {
 });
 app.use(
   cors({
-    origin: FRONTEND_URL,
+    origin: allowedOrigin,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
