@@ -19,15 +19,22 @@ app.use((req, res, next) => {
   if (!req.cookies.uid) {
     res.cookie("uid", crypto.randomUUID(), {
       httpOnly: true,
-      sameSite: "none",
-      secure: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 24 * 365,
     });
   }
   next();
 });
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+app.use(
+  cors({
+    origin: FRONTEND_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(helmet());
 app.use(morgan("dev"));
 
