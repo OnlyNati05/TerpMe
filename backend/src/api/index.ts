@@ -34,11 +34,11 @@ app.use(helmet());
 app.use(morgan("dev"));
 
 // Routes
-app.use("/api/pages", pageRouter);
-app.use("/api/ingest", ingestRouter);
-app.use("/api/chat", chatRouter);
-app.use("/api/conversations", conversationRoutes);
-app.use("/api/user", userRouter);
+app.use("/pages", pageRouter);
+app.use("/ingest", ingestRouter);
+app.use("/chat", chatRouter);
+app.use("/conversations", conversationRoutes);
+app.use("/user", userRouter);
 
 // Start server
 app.listen(PORT, () => {
