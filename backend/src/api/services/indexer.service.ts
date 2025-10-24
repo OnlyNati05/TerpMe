@@ -3,13 +3,19 @@ import { embedTexts } from "./embeddings.service";
 import { QDRANT_COLLECTION_NAME, QDRANT_VECTOR_SIZE } from "../config/env";
 import { v5 as uuidv5 } from "uuid";
 
-export type Chunk = { url: string; content: string };
+export type Chunk = { url: string; content: string; title: string; sport?: string; date?: string };
 
 const UPSERT_BATCH_SIZE = 100;
 
 export async function indexChunks(chunks: Chunk[]) {
   // Clean up the text
-  const filtered = chunks.map((c) => ({ url: c.url.trim(), content: (c.content ?? "").trim() }));
+  const filtered = chunks.map((c) => ({
+    url: c.url.trim(),
+    content: (c.content ?? "").trim(),
+    title: (c.title ?? "").trim(),
+    sport: c.sport ? c.sport.trim() : undefined,
+    date: c.date ? c.date.trim() : undefined,
+  }));
 
   if (!filtered.length) {
     return { upserted: 0 };
@@ -32,13 +38,20 @@ export async function indexChunks(chunks: Chunk[]) {
     vector: embeddings[i],
     payload: {
       url: chunk.url,
+      title: chunk.title,
       content: chunk.content,
       chunkIndex: i,
+      ...(chunk.sport && { sport: chunk.sport }),
+      ...(chunk.date && {
+        date: chunk.date, // human readable (2025/10/23)
+        date_iso: new Date(chunk.date).toISOString(), // for filtering
+      }),
     },
   }));
 
   // Upsert in batches
   let upserted = 0;
+
   for (let i = 0; i < points.length; i += UPSERT_BATCH_SIZE) {
     const batch = points.slice(i, i + UPSERT_BATCH_SIZE);
     await qdrant.upsert(QDRANT_COLLECTION_NAME, { wait: true, points: batch });
@@ -115,3 +128,16 @@ export async function deleteAllFromIndex() {
     return { ok: false, error: error.message };
   }
 }
+
+/*
+
+if (query.includes("recent") || query.includes("latest") || query.includes("today")) {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  filter.must.push({
+    key: "date",
+    range: { gte: sevenDaysAgo.toISOString() },
+  });
+}
+
+*/

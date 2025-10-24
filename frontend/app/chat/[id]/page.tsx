@@ -5,9 +5,24 @@ import MessageBubble from "@/components/ui/messageBubble";
 import api from "@/lib/axios";
 import { API_URL } from "@/lib/config";
 import { use } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import ChatInput from "@/components/ui/ChatInput";
 import { notFound } from "next/navigation";
+import {
+  PromptInput,
+  PromptInputTextarea,
+  PromptInputToolbar,
+  PromptInputSubmit,
+  PromptInputTools,
+  PromptInputButton,
+} from "@/components/ui/shadcn-io/ai/prompt-input";
+import { MicIcon, Brain, Square } from "lucide-react";
+import { PulseLoader } from "react-spinners";
+import useSpeechRecognition from "@/hooks/useSpeechRecognition";
+
+type Source = {
+  title: string;
+  url: string;
+  description: string;
+};
 
 type Msg = {
   id: string;
@@ -16,7 +31,11 @@ type Msg = {
   role: "user" | "assistant" | string;
   summarized: boolean;
   conversationId: string;
-  sources?: string[];
+  metadata?: {
+    type?: string;
+    sources?: Source[];
+    hitCount?: number;
+  };
 };
 
 type Conversation = {
@@ -42,6 +61,38 @@ export default function ChatPage({
   const [err, setErr] = useState<any>(null);
   const [limitError, setLimitError] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  const [input, setInput] = useState("");
+  const [streaming, setStreaming] = useState(false);
+
+  const { isListening, transcript, startListening, stoptListening } =
+    useSpeechRecognition();
+
+  const startStopListening = () => {
+    isListening ? stopVoiceInput() : startListening();
+  };
+
+  const stopVoiceInput = () => {
+    setInput(
+      (prev) =>
+        prev + (transcript.length ? (prev.length ? " " : "") + transcript : "")
+    );
+    stoptListening();
+  };
+
+  // Get user Limit
+  useEffect(() => {
+    const getUserLimit = async () => {
+      try {
+        const res = await api.get("/user/limit");
+        if (res.data.limit === true) {
+          setLimitError("Daily limit reached.");
+        }
+      } catch (err) {
+        console.log("Error fetching user limit: ", err);
+      }
+    };
+    getUserLimit();
+  }, []);
 
   // Load conversation + messages
   useEffect(() => {
@@ -87,6 +138,8 @@ export default function ChatPage({
     controllerRef.current = new AbortController();
 
     try {
+      setStreaming(true);
+
       const resp = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,6 +185,7 @@ export default function ChatPage({
       const decoder = new TextDecoder();
 
       let buffer = "";
+      let firstChunk = true;
 
       while (true) {
         const { value, done } = await reader.read();
@@ -158,7 +212,36 @@ export default function ChatPage({
             return;
           }
 
-          // Append token text (preserving spacing + markdown)
+          if (firstChunk) {
+            setSending(false);
+            firstChunk = false;
+          }
+
+          const isJsonLike =
+            payload.trim().startsWith("{") && payload.trim().endsWith("}");
+
+          if (isJsonLike) {
+            try {
+              const json = JSON.parse(payload);
+
+              if (json.type === "metadata") {
+                setConv((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        messages: prev.messages.map((m) =>
+                          m.id === msgId ? { ...m, metadata: json } : m
+                        ),
+                      }
+                    : prev
+                );
+                return;
+              }
+            } catch (err) {
+              console.warn("JSON parse failed for:", payload);
+            }
+          }
+
           setConv((prev) =>
             prev
               ? {
@@ -181,6 +264,7 @@ export default function ChatPage({
       console.error("Streaming error:", err);
       setErr(err);
     } finally {
+      setStreaming(false);
       controllerRef.current = null;
     }
   }
@@ -222,48 +306,129 @@ export default function ChatPage({
       } else {
         setErr(err?.response?.data ?? err);
       }
-    } finally {
-      setSending(false);
     }
   }
 
   return (
-    <div className="relative flex flex-col h-[97vh] mx-25">
-      {/* Messages */}
-      <div className=" flex-1 overflow-y-auto p-6 space-y-3">
-        {/* {sending && } */}
-        {conv?.messages.map((m) => (
-          <MessageBubble
-            key={m.id}
-            role={m.role}
-            content={m.content}
-            sources={m.sources}
-          />
-        ))}
-        <div className="pointer-events-none absolute bottom-20 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent z-10" />
+    <div className="flex flex-col flex-1 h-screen overflow-hidden">
+      {/* Messages area */}
+      <h1 className="relative top-6 right-16 text-center text-[15px] font-medium ">
+        {conv?.title}
+      </h1>
+      <div className="flex-1 overflow-y-auto px-6 py-12 mt-12">
+        <div className="max-w-3xl mx-auto w-full space-y-3">
+          {conv?.messages.map((m, i) => (
+            <MessageBubble
+              key={m.id}
+              role={m.role}
+              content={m.content}
+              metadata={m.metadata}
+              isLast={i === conv.messages.length - 1}
+              streaming={streaming}
+              sending={sending}
+              onRetry={() => {
+                const index = conv?.messages.findIndex(
+                  (msg) => msg.id === m.id
+                );
+                if (index && index > 0) {
+                  const prevUserMsg = conv.messages[index - 1];
+                  if (prevUserMsg.role === "user") {
+                    streamAssistant(prevUserMsg.content);
+                  }
+                }
+              }}
+            />
+          ))}
+        </div>
+        <div className="w-20 mx-35">
+          {sending && (
+            <PulseLoader color="#d4d2d2" size={10} speedMultiplier={0.7} />
+          )}
+        </div>
       </div>
 
-      <div className="grid w-full max-w-xl items-start gap-4 m-10">
-        {/* Daily limit error */}
-        {limitError && (
-          <Alert variant="destructive">
-            <AlertTitle>Daily Limit Reached</AlertTitle>
-            <AlertDescription>
-              {"You have used up today's messages. Try again in 24 hours."}
-            </AlertDescription>
-          </Alert>
-        )}
-      </div>
+      <div className="sticky bottom-0">
+        <div className="max-w-[800px] mx-auto w-full pb-8">
+          <PromptInput
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const trimmed = input.trim();
+              if (!trimmed || sending || streaming || loading || limitError)
+                return;
 
-      {/* Chat input */}
-      <div>
-        <ChatInput
-          onSend={onSend}
-          onStop={() => controllerRef.current?.abort()}
-          isStreaming={sending}
-          isLoading={loading}
-          disabled={limitError !== null}
-        />
+              setInput("");
+              await onSend(trimmed);
+            }}
+            className="dark:bg-neutral-700"
+          >
+            <PromptInputTextarea
+              value={
+                isListening
+                  ? input +
+                    (transcript.length
+                      ? (input.length ? " " : "") + transcript
+                      : "")
+                  : input
+              }
+              onChange={(e) => setInput(e.currentTarget.value)}
+              placeholder={
+                limitError
+                  ? "Daily message limit reached"
+                  : "Type your message..."
+              }
+              className="
+              px-5
+            placeholder-gray-400 
+            dark:placeholder-neutral-400 
+            dark:text-white"
+              disabled={!!limitError || isListening}
+            />
+            <PromptInputToolbar>
+              <PromptInputTools className="px-0.5">
+                <PromptInputButton
+                  className="cursor-pointer dark:text-white"
+                  disabled={!!limitError}
+                  onClick={() => startStopListening()}
+                >
+                  {isListening ? (
+                    <Square size={13} fill="red" color="red" />
+                  ) : (
+                    <MicIcon size={16} />
+                  )}
+                  {isListening ? (
+                    <span className="text-red-600">Listening...</span>
+                  ) : (
+                    <span>Voice</span>
+                  )}
+                </PromptInputButton>
+                <PromptInputButton
+                  className="cursor-pointer dark:text-white"
+                  disabled={!!limitError}
+                >
+                  <Brain size={16} />
+                  <span>GPT 4o-mini</span>
+                </PromptInputButton>
+              </PromptInputTools>
+              <PromptInputSubmit
+                onClick={(e) => {
+                  if (streaming) {
+                    e.preventDefault();
+                    controllerRef.current?.abort();
+                    setStreaming(false);
+                    return;
+                  }
+                }}
+                className="bg-blue-500 cursor-pointer hover:bg-blue-600"
+                disabled={
+                  loading || !!limitError || (!streaming && !input.trim())
+                }
+                status={
+                  sending ? "submitted" : streaming ? "streaming" : "idle"
+                }
+              />
+            </PromptInputToolbar>
+          </PromptInput>
+        </div>
       </div>
     </div>
   );

@@ -26,7 +26,8 @@ model Conversation {
   id        String    @id @default(cuid())
   title     String                               
   userId    String
-  summary   String?                               
+  summary   String?                    
+  firstM    Boolean?           
   messages  Message[]
   preview   String?                           
   createdAt DateTime  @default(now())
@@ -38,15 +39,15 @@ model Message {
   conversationId String                              
   role           String                           
   content        String
-  summarized     Boolean  @default(false)                             
+  summarized     Boolean      @default(false)                             
   createdAt      DateTime     @default(now())        
-
+  metadata       Json?
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 model UserQuota {
   id        String   @id @default(cuid())
   userId    String   @unique
-  date      DateTime // day this quota is for
+  date      DateTime 
   messages  Int      @default(0)
 }
 model Avatar {

@@ -10,7 +10,7 @@ import { prisma } from "../lib/prisma";
 const MAX_CONTEXT_MESSAGES = 20; // how many messages to keep
 const SUMMARIZE_THRESHOLD = 50; // when to summarize
 
-export type RetrievedChunk = { content: string; url: string; score: number };
+export type RetrievedChunk = { content: string; url: string; title: string; score: number };
 
 export async function embedQuery(question: string): Promise<number[]> {
   const [vec] = await embedTexts([question]);
@@ -19,16 +19,44 @@ export async function embedQuery(question: string): Promise<number[]> {
 }
 
 // Search Qdrant DB for chunks that are similar to the users question
-export async function searchQdrant(queryEmbedding: number[], limit = 5): Promise<RetrievedChunk[]> {
+export async function searchQdrant(
+  queryEmbedding: number[],
+  limit = 5,
+  queryText?: string
+): Promise<RetrievedChunk[]> {
+  const filter: any = { must: [] };
+
+  // Detect recency intent
+  if (queryText) {
+    const lower = queryText.toLowerCase();
+    if (/(recent|latest|today|this week|this month)/.test(lower)) {
+      const now = new Date();
+
+      let since = new Date();
+      if (lower.includes("today")) since.setDate(now.getDate() - 1);
+      else if (lower.includes("week")) since.setDate(now.getDate() - 7);
+      else if (lower.includes("month")) since.setMonth(now.getMonth() - 1);
+      else since.setDate(now.getDate() - 14);
+
+      filter.must.push({
+        key: "date_iso",
+        range: { gte: since.toISOString() },
+      });
+    }
+  }
+
+  // Run Qdrant search
   const hits = await qdrant.search(QDRANT_COLLECTION_NAME, {
     vector: queryEmbedding,
     limit,
     with_payload: true,
+    ...(filter.must.length ? { filter } : {}),
   });
 
   return hits
     .map((h) => ({
       content: (h.payload as any)?.content ?? "",
+      title: (h.payload as any)?.title ?? "",
       url: (h.payload as any)?.url ?? "",
       score: h.score ?? 0,
     }))
@@ -43,8 +71,8 @@ export async function buildContext(
   chunks: RetrievedChunk[],
   maxChars = 7000,
   similarityThreshold = 0.9
-): Promise<{ context: string; sources: string[] }> {
-  const sources: string[] = [];
+): Promise<{ context: string; sources: { title: string; url: string; description: string }[] }> {
+  const sources: { title: string; url: string; description: string }[] = [];
   let context = "";
   const cutoff = 1800;
 
@@ -76,7 +104,13 @@ export async function buildContext(
 
     // Accept this chunk
     context += block;
-    sources.push(c.url);
+
+    sources.push({
+      title: c.title,
+      url: c.url,
+      description: snippet.trim(),
+    });
+
     seenEmbeddings.push(embedding);
   }
 
@@ -132,16 +166,9 @@ async function normalLLMAnswer(
   conversationId: string,
   question: string
 ): Promise<string> {
-  const history = await messageService.listMessages(uid, conversationId);
-
   const completion = await openai.chat.completions.create({
     model: CHAT_MODEL,
-    messages: [
-      ...history.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      })),
-    ],
+    messages: [{ role: "user", content: question }],
     temperature: 0.7,
   });
 
@@ -164,32 +191,31 @@ export async function askQuestion(
   onDelta?: (delta: string) => void
 ): Promise<{
   answer: string;
-  sources: string[];
+  sources: { title: string; url: string; description: string }[];
   hitCount: number;
   usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
 }> {
+  const now = new Date();
+  const today = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
   const { uid, conversationId } = opts;
 
-  try {
-    const curr_conv = await prisma.conversation.findMany({
-      where: { id: conversationId, userId: uid },
-      include: {
-        messages: {
-          where: { role: "user" },
-        },
-      },
-    });
+  // If first_message -> dont run logic -> set first_message false
+  const current_conv = await prisma.conversation.findUnique({
+    where: { id: conversationId, userId: uid },
+  });
 
-    if (curr_conv && !(curr_conv[0].messages.length === 1)) {
-      await messageService.createMessage({
-        uid,
-        conversationId,
-        role: "user",
-        content: question,
-      });
-    }
-  } catch (error) {
-    console.log(error);
+  if (!current_conv?.firstM) {
+    await messageService.createMessage({
+      uid,
+      conversationId,
+      role: "user",
+      content: question,
+    });
+  } else if (current_conv?.firstM) {
+    await prisma.conversation.update({
+      where: { id: conversationId, userId: uid },
+      data: { firstM: false },
+    });
   }
 
   // If first message in chat, add it to preview
@@ -219,25 +245,110 @@ export async function askQuestion(
   }
 
   const embedding = await embedQuery(question);
-  const chunks = await searchQdrant(embedding, k ?? 5);
+  const chunks = await searchQdrant(embedding, k ?? 5, question);
+  const filteredChunks = chunks.filter((c) => c.score > 0.2);
 
   // If no relevant context chunks found, fallback
-  if (chunks.length === 0) {
+  if (filteredChunks.length === 0) {
     const type = await classifyQuestion(question);
-    const generalAnswer = await normalLLMAnswer(uid, conversationId, question);
 
-    if (type === "UMD") {
-      return {
-        answer:
-          "I couldn't find this in my sources. Here's what I know more generally:\n\n" +
-          generalAnswer,
-        sources: [],
-        hitCount: 0,
-      };
+    if (type === "UMD" && onDelta) {
+      const prefix = "I couldn't find this in my sources. Here's what I know more generally:\n\n";
+      onDelta(prefix);
     }
 
+    const convo = await prisma.conversation.findFirst({
+      where: { id: conversationId },
+      select: { summary: true },
+    });
+
+    const recentMessages = await prisma.message.findMany({
+      where: { conversationId, summarized: false },
+      orderBy: { createdAt: "asc" },
+      take: MAX_CONTEXT_MESSAGES,
+    });
+
+    const messages = [
+      ...(convo?.summary
+        ? [
+            {
+              role: "system" as const,
+              content: `Conversation so far (summary): ${convo.summary}`,
+            },
+          ]
+        : []),
+
+      ...(type === "GENERAL"
+        ? [
+            {
+              role: "system" as const,
+              content: `# Role
+                  You are a helpful and conversational assistant. Respond naturally and use prior messages for context when appropriate.
+
+                  # Current Date
+                  Today's Date: ${today}
+
+                  # Response Formatting
+                  - Use **bold** for important dates and key details
+                  - Use bullet points or numbered lists when appropriate
+                  - Keep paragraphs concise (2-3 sentences maximum)`,
+            },
+          ]
+        : [
+            {
+              role: "system" as const,
+              content: `# Role
+                  You are a helpful and conversational assistant. Respond naturally and use prior messages for context when appropriate.
+
+                  # Current Date
+                  Today's Date: ${today}
+
+                  # Instructions
+                  - If multiple dates or events are present, choose the one that best matches the user's question and is most recent to today's date
+                  - Prioritize relevant context details over short answers
+
+                  # Response Formatting
+                  - Use **bold** for important dates and key details
+                  - Use bullet points or numbered lists when appropriate
+                  - Keep paragraphs concise (2-3 sentences maximum)`,
+            },
+          ]),
+
+      ...recentMessages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+
+      { role: "user" as const, content: question },
+    ];
+
+    const completion = await openai.chat.completions.create({
+      model: CHAT_MODEL,
+      messages,
+      temperature: 0.7,
+      stream: true,
+    });
+
+    let answer = "";
+
+    for await (const chunk of completion) {
+      const delta = chunk.choices[0]?.delta?.content || "";
+      if (delta) {
+        answer += delta;
+        if (onDelta) onDelta(delta);
+      }
+    }
+
+    await messageService.createMessage({
+      uid,
+      conversationId,
+      role: "assistant",
+      content: answer,
+      metadata: [],
+    });
+
     return {
-      answer: generalAnswer,
+      answer,
       sources: [],
       hitCount: 0,
     };
@@ -257,9 +368,6 @@ export async function askQuestion(
     take: MAX_CONTEXT_MESSAGES,
   });
 
-  const now = new Date();
-  const today = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
-
   const messages = [
     ...(convo?.summary
       ? [{ role: "system" as const, content: `Conversation so far (summary): ${convo.summary}` }]
@@ -276,8 +384,8 @@ export async function askQuestion(
         - Write in a clear, professional tone.
         - Responses may be up to 500 tokens if needed. If an answer would require much more than that, summarize instead and end gracefully. 
         Formatting:
-        - Use **bold** for important names, dates, or key details.
-        - Use bullet points or numbered lists for multiple items.
+        - Use **bold** on important dates and key details.
+        - Use bullet points or numbered lists if needed.
         - Keep paragraphs concise (2-3 sentences max).
         - Always include relevant context details rather than short answers.`,
     },
@@ -311,6 +419,7 @@ export async function askQuestion(
     conversationId,
     role: "assistant",
     content: answer,
+    metadata: sources,
   });
 
   return {

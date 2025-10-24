@@ -17,7 +17,7 @@ export async function runPipeline() {
 
     console.log("Pipeline job completed successfully.");
   } catch (err) {
-    console.error("Pipeline job failed");
+    console.error("Pipeline job failed: ", err);
   }
 }
 

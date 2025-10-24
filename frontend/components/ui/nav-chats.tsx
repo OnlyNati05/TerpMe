@@ -121,7 +121,7 @@ export function NavChats({
         >
           <ChevronDown
             className={cn(
-              "h-4 w-4 transition-transform duration-300",
+              "h-4 w-4 transition-transform duration-300 dark:!hover:text",
               chatsOpen ? "rotate-0" : "-rotate-90"
             )}
           />
@@ -138,7 +138,7 @@ export function NavChats({
         className="overflow-hidden"
       >
         {chats.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 h-82 text-gray-500 text-sm font-medium">
+          <div className="flex flex-col items-center justify-center gap-3 h-82 text-gray-500 dark:text-white text-sm font-medium">
             <MessageCircleDashed />
             No Chat History
           </div>
@@ -175,10 +175,10 @@ export function NavChats({
                         className={cn(
                           "flex flex-col justify-center items-start py-10 transition-colors w-full text-left cursor-pointer",
                           pathname === item.url
-                            ? "bg-blue-100 text-blue-600 hover:!bg-blue-100 hover:!text-blue-600"
+                            ? "bg-blue-200 dark:bg-neutral-700 dark:text-white text-blue-600 hover:!bg-blue-100 dark:hover:!bg-neutral-700 hover:!text-blue-600 dark:hover:!text-white"
                             : isEditing
                             ? "bg-primary-foreground"
-                            : "bg-primary-foreground hover:bg-accent"
+                            : "bg-primary-foreground hover:bg-accent dark:hover:!bg-neutral-700"
                         )}
                       >
                         <div className="flex flex-row items-center p-2 gap-4 w-full">
@@ -209,7 +209,14 @@ export function NavChats({
                               </span>
                             )}
 
-                            <span className="font-light text-xs text-gray-500 truncate max-w-[200px]">
+                            <span
+                              className={cn(
+                                "font-light text-xs text-gray-500 dark:text-neutral-400 truncate max-w-[200px]",
+                                pathname === item.url
+                                  ? "dark:text-neutral-100"
+                                  : "dark:text-neutral-200"
+                              )}
+                            >
                               {item.preview}
                             </span>
                           </div>
@@ -223,8 +230,8 @@ export function NavChats({
                             className={cn(
                               "cursor-pointer",
                               pathname === item.url
-                                ? "hover:bg-blue-200"
-                                : "hover:bg-accent"
+                                ? "hover:bg-blue-200 dark:hover:bg-neutral-500"
+                                : "hover:bg-accent dark:hover:bg-neutral-600"
                             )}
                           >
                             <MoreHorizontal />

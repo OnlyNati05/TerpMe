@@ -34,3 +34,16 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
 
   return all;
 }
+
+/*
+
+if (query.includes("recent") || query.includes("latest") || query.includes("today")) {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  filter.must.push({
+    key: "date",
+    range: { gte: sevenDaysAgo.toISOString() },
+  });
+}
+
+*/

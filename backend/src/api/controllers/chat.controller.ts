@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { askQuestion } from "../services/qa.service";
 import { prisma } from "../lib/prisma";
-import { openai } from "../lib/openai";
 import { generateConversationTitle } from "../utils/titleGenerator";
 
 /**
@@ -65,10 +64,22 @@ export async function chat(req: Request, res: Response) {
 
     let fullAnswer = "";
 
-    await askQuestion(raw.trim(), { uid, conversationId }, k, (delta) => {
+    const result = await askQuestion(raw.trim(), { uid, conversationId }, k, (delta) => {
       fullAnswer += delta;
+
       res.write(`data: ${delta.replace(/\n/g, "\ndata: ")}\n\n`);
     });
+    const sources = result.sources;
+    const hitCount = result.hitCount;
+
+    res.write(
+      `data: ${JSON.stringify({
+        type: "metadata",
+        sources,
+        hitCount,
+      })}\n\n`
+    );
+
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (err: any) {

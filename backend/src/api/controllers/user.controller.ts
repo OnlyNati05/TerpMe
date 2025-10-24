@@ -27,3 +27,23 @@ export async function getUser(req: Request, res: Response) {
 
   return res.json({ avatar: avatar?.image ?? "pfp/default.jpeg" });
 }
+
+export async function userLimit(req: Request, res: Response) {
+  try {
+    const uid = req.cookies?.uid as string;
+    if (!uid) {
+      return res.status(400).json({ error: "Missing user token" });
+    }
+
+    const user = await prisma.userQuota.findUnique({
+      where: { userId: uid },
+    });
+
+    const limitReached = (user?.messages ?? 0) >= 20;
+
+    return res.json({ limit: limitReached });
+  } catch (error) {
+    console.error("userLimit error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}

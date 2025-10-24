@@ -17,3 +17,4 @@ dist/
 
 # Other
 Todo.txt
+.serverless/

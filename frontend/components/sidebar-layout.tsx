@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { BsLayoutSidebar } from "react-icons/bs";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function SidebarLayout({
   children,
@@ -41,7 +42,7 @@ export default function SidebarLayout({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={`flex items-center bg-sidebar scale-99 rounded-2xl shadow-md border border-gray-200
+          className={`flex items-center bg-sidebar scale-99 rounded-2xl shadow-md border dark:border-none border-gray-200
           transition-all duration-300
           ${
             sidebarOpen
@@ -51,23 +52,25 @@ export default function SidebarLayout({
         >
           {/* Title only when open */}
           {sidebarOpen && (
-            <Image
-              src="/logo/fullterp.png"
-              alt="TerpMe banner"
-              className="w-full max-w-[150px] ml-0"
-              width={200}
-              height={200}
-            />
+            <Link href="/" className="cursor-pointer">
+              <Image
+                src="/logo/TerpMe-Logo.svg"
+                alt="TerpMe banner"
+                className="w-full max-w-[150px] ml-0 cursor-pointer"
+                width={200}
+                height={200}
+              />
+            </Link>
           )}
 
           {/* Toggle button */}
           <button
             onClick={() => setSidebarOpen((prev) => !prev)}
             title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            className="p-2 rounded-full hover:bg-gray-200 transition"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 transition"
             aria-expanded={sidebarOpen}
           >
-            <BsLayoutSidebar className="h-5 w-5 text-gray-800 cursor-pointer" />
+            <BsLayoutSidebar className="h-5 w-5 text-gray-800 dark:text-white cursor-pointer" />
           </button>
         </motion.div>
 

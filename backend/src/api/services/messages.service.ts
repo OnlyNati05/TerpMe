@@ -5,6 +5,11 @@ export async function createMessage(opts: {
   conversationId: string;
   role: "user" | "assistant";
   content: string;
+  metadata?: {
+    title: string;
+    url: string;
+    description: string;
+  }[];
 }) {
   // Check that the conversation belongs to this user
   const convo = await prisma.conversation.findFirst({
@@ -19,6 +24,7 @@ export async function createMessage(opts: {
       conversationId: opts.conversationId,
       role: opts.role,
       content: opts.content,
+      metadata: opts.metadata ? { sources: opts.metadata } : undefined,
     },
   });
 

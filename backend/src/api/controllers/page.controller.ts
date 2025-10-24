@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { deleteUrlFromIndex } from "../services/indexer.service";
-import { deleteAllPagesService, deletePagesService } from "../services/page.service";
+import {
+  addPagesCrawler,
+  deleteAllPagesService,
+  deletePagesService,
+} from "../services/page.service";
 import { prisma } from "../lib/prisma";
 
 /**
@@ -142,5 +146,27 @@ export async function addPagesBulk(req: Request, res: Response) {
     unique: unique.length,
     inserted: result.count,
     skippedDuplicates: unique.length - result.count,
+  });
+}
+
+export async function check(req: Request, res: Response) {
+  const body = req.body as { urls?: string[] };
+  const input = body?.urls;
+
+  if (!Array.isArray(input)) {
+    return res.status(400).json({ error: "urls must be an array" });
+  }
+
+  const normalized = input.map(normalizeUrl).filter((u: any): u is string => !!u);
+  const urls = Array.from(new Set(normalized));
+
+  try {
+    await addPagesCrawler(urls);
+  } catch (error) {
+    return res.json({ error });
+  }
+
+  return res.json({
+    success: "Yes",
   });
 }

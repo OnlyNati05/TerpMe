@@ -84,9 +84,9 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=close]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground p-2 [box-shadow:0_0_3px_rgba(0,0,0,0.2)]"
+              className="data-[state=close]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground p-2 [box-shadow:0_0_3px_rgba(0,0,0,0.2)] dark:[box-shadow:0_0_3px_rgba(100,100,100,0.9)] cursor-pointer"
             >
-              <Avatar className="h-8 w-8 rounded-lg border-2">
+              <Avatar className="h-8 w-8 rounded-lg border-2 dark:border-neutral-300">
                 <AvatarImage src={currentAvatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
@@ -125,7 +125,7 @@ export function NavUser({
                     alt={a.label}
                     className="h-10 w-10 rounded-md object-cover"
                   />
-                  <span className="text-[11px] text-gray-600">
+                  <span className="text-[11px] text-gray-600 dark:text-white">
                     {currentAvatar === a.src ? "You" : a.label}
                   </span>
                 </DropdownMenuItem>

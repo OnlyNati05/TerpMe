@@ -18,39 +18,42 @@ export async function ingestUrls(urls: string[]) {
       const existing = await prisma.page.findUnique({ where: { url } });
 
       if (existing) {
-        await prisma.page.update({
-          where: { url },
-          data: { status: "skipped", lastIndexAt: new Date() },
-        });
-        report.push({ url, action: "skipped", reason: "already indexed" });
-        continue; // no scrape needed
+        if (["indexed", "skipped"].includes(existing.status!)) {
+          await prisma.page.update({
+            where: { url },
+            data: { lastIndexAt: new Date() },
+          });
+          report.push({ url, action: "skipped", reason: `already ${existing.status}` });
+          continue;
+        }
       }
 
       // Only scrape if not already indexed
       const result = await scrapeUrl(url);
 
-      if (typeof result === "string") {
+      if (!result) {
         success = "partial";
         report.push({ url, action: "error", reason: result });
-        await prisma.page.create({
-          data: { url, status: "error", lastIndexAt: new Date() },
+        await prisma.page.upsert({
+          where: { url },
+          update: { status: "skipped", lastIndexAt: new Date(), chunkCount: 0 },
+          create: { url, status: "skipped", lastIndexAt: new Date(), chunkCount: 0 },
         });
         continue;
       }
 
       const chunks = result as Chunk[];
-      if (!chunks.length) {
-        report.push({ url, action: "error", reason: "no chunks scraped", chunks: 0 });
-        await prisma.page.create({
-          data: { url, status: "skipped", lastIndexAt: new Date(), chunkCount: 0 },
-        });
-        continue;
-      }
 
       // Index new page
       const { upserted } = await indexChunks(chunks);
-      await prisma.page.create({
-        data: {
+      await prisma.page.upsert({
+        where: { url },
+        update: {
+          chunkCount: chunks.length,
+          lastIndexAt: new Date(),
+          status: "indexed",
+        },
+        create: {
           url,
           chunkCount: chunks.length,
           lastIndexAt: new Date(),

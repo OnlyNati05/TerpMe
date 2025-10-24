@@ -31,6 +31,7 @@ export async function createConversation(uid: string, initialMessage?: string) {
     data: {
       userId: uid,
       title,
+      firstM: true,
       preview: initialMessage,
       messages: initialMessage
         ? {

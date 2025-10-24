@@ -28,7 +28,7 @@ export function NavMain({
               prefetch={true}
               href={item.url}
               className="flex flex-row justify-center items-center p-6 bg-popover [box-shadow:0_0_8px_rgba(0,0,0,0.1)] 
-              hover:[box-shadow:0_0_7px_rgba(0,0,0,0.1)] hover:!bg-blue-100 hover:!text-blue-700 transition-all duration-300"
+              hover:[box-shadow:0_0_7px_rgba(0,0,0,0.1)] dark:hover:!bg-neutral-400 dark:hover:!text-white hover:!bg-blue-100 hover:!text-blue-700 transition-all duration-300"
             >
               <item.icon />
               <span className="text-base font-sans font-normal">
