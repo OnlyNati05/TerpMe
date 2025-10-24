@@ -29,14 +29,6 @@ export default function Home() {
   const [userLimit, setUserLimit] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    const existing = localStorage.getItem("uid");
-    if (!existing) {
-      const uid = crypto.randomUUID();
-      localStorage.setItem("uid", uid);
-    }
-  }, []);
-
   const { isListening, transcript, startListening, stoptListening } =
     useSpeechRecognition();
 

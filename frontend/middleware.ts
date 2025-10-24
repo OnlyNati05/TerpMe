@@ -8,14 +8,14 @@ export function middleware(req: NextRequest) {
   if (!req.cookies.get("uid")?.value) {
     res.cookies.set("uid", crypto.randomUUID(), {
       httpOnly: true,
-      sameSite: "none",
-      secure: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 365, // 1 year
       path: "/",
     });
-  }
 
-  return res;
+    return res;
+  }
 }
 
 // Run on everything except static assets
