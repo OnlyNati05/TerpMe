@@ -12,10 +12,24 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
+const allowedOrigins = ["http://localhost:3000", "https://terpme.vercel.app"];
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS not allowed for origin: ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(helmet());
 app.use(morgan("dev"));
 
