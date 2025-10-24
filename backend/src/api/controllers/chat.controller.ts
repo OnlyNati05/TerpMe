@@ -13,7 +13,8 @@ const DAILY_LIMIT = 20;
 
 export async function chat(req: Request, res: Response) {
   const raw = req.body?.question;
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   let conversationId = req.params.conversationId || req.body.conversationId;
   const k = Number(req.body.k) || 5;
 

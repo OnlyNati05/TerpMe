@@ -9,6 +9,7 @@ import userRouter from "./routes/user";
 import ingestRouter from "./routes/ingest";
 import conversationRoutes from "./routes/conversations";
 import cookieParser from "cookie-parser";
+import { userTokenMiddleware } from "./middleware/userToken";
 
 const app = express();
 
@@ -17,6 +18,7 @@ const allowedOrigins = ["http://localhost:3000", "https://terpme.vercel.app"];
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use(userTokenMiddleware);
 app.use(
   cors({
     origin: (origin, callback) => {

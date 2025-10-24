@@ -5,7 +5,8 @@ import { prisma } from "../lib/prisma";
 // GET /conversations
 // Only gets all user conversations
 export async function getConversations(req: Request, res: Response) {
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   if (!uid) return res.status(400).json({ error: "Missing user token" });
 
   const conversations = await conversationService.getUserConversations(uid);
@@ -15,7 +16,8 @@ export async function getConversations(req: Request, res: Response) {
 // GET /conversations/:id
 // Gets conversation + messages
 export async function getConversationById(req: Request, res: Response) {
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   const { id } = req.params;
 
   if (!uid) return res.status(400).json({ error: "Missing user token" });
@@ -28,7 +30,8 @@ export async function getConversationById(req: Request, res: Response) {
 
 // POST /conversations
 export async function createConversation(req: Request, res: Response) {
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   if (!uid) return res.status(400).json({ error: "Missing user token" });
   const { initialMessage } = req.body;
 
@@ -43,7 +46,8 @@ export async function createConversation(req: Request, res: Response) {
 
 // PATCH /conversations/:id
 export async function renameConversation(req: Request, res: Response) {
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   const { id } = req.params;
   const { title } = req.body;
 
@@ -70,7 +74,8 @@ export async function renameConversation(req: Request, res: Response) {
 
 // DELETE /conversations/:id
 export async function deleteConversation(req: Request, res: Response) {
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   const { id } = req.params;
 
   if (!uid) return res.status(400).json({ error: "Missing user token" });

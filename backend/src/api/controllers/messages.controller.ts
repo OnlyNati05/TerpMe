@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import * as messageService from "../services/messages.service";
 
 export async function createMessage(req: Request, res: Response) {
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   const { id: conversationId } = req.params as { id: string };
   const { content, role } = req.body as { content: string; role?: "user" | "assistant" };
 
@@ -23,7 +24,8 @@ export async function createMessage(req: Request, res: Response) {
 }
 
 export async function listMessages(req: Request, res: Response) {
-  const uid = req.cookies?.uid as string;
+  const uid = (req as any).userToken as string;
+
   const { id: conversationId } = req.params as { id: string };
   if (!uid) return res.status(400).json({ error: "Missing user token" });
 
