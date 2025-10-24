@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/shadcn-io/ai/prompt-input";
 import { MicIcon, Brain } from "lucide-react";
 import useSpeechRecognition from "@/hooks/useSpeechRecognition";
+import { ChatStatus } from "ai";
 
 const prompts = {
   prompt1: "What was the score of the most recent football game at UMD?",
@@ -211,7 +212,7 @@ export default function Home() {
             <PromptInputSubmit
               className="bg-blue-500 cursor-pointer hover:bg-blue-600"
               disabled={userLimit || !input.trim()}
-              status={isCreating ? "submitted" : "idle"}
+              status={(isCreating ? "submitted" : "idle") as ChatStatus}
             />
           </PromptInputToolbar>
         </PromptInput>

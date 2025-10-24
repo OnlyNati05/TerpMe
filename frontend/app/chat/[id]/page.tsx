@@ -17,6 +17,7 @@ import {
 import { MicIcon, Brain, Square } from "lucide-react";
 import { PulseLoader } from "react-spinners";
 import useSpeechRecognition from "@/hooks/useSpeechRecognition";
+import { ChatStatus } from "ai";
 
 type Source = {
   title: string;
@@ -423,7 +424,11 @@ export default function ChatPage({
                   loading || !!limitError || (!streaming && !input.trim())
                 }
                 status={
-                  sending ? "submitted" : streaming ? "streaming" : "idle"
+                  (sending
+                    ? "submitted"
+                    : streaming
+                    ? "streaming"
+                    : "idle") as ChatStatus
                 }
               />
             </PromptInputToolbar>
