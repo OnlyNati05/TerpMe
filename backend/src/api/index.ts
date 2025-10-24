@@ -16,22 +16,19 @@ const app = express();
 const allowedOrigins = ["http://localhost:3000", "https://terpme.vercel.app"];
 
 // Middleware
+app.use(
+  cors({
+    origin: ["https://terpme.vercel.app", "http://localhost:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-user-token"],
+  })
+);
+
+app.options("*", cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(userTokenMiddleware);
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS not allowed for origin: ${origin}`));
-      }
-    },
-    credentials: true,
-  })
-);
 app.use(helmet());
 app.use(morgan("dev"));
 
