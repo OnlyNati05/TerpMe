@@ -13,7 +13,7 @@ const DAILY_LIMIT = 20;
 
 export async function chat(req: Request, res: Response) {
   const raw = req.body?.question;
-  const uid = (req as any).userToken as string;
+  const uid = req.cookies?.uid as string;
 
   let conversationId = req.params.conversationId || req.body.conversationId;
   const k = Number(req.body.k) || 5;
@@ -84,7 +84,14 @@ export async function chat(req: Request, res: Response) {
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (err: any) {
-    res.write(`data: ${JSON.stringify({ error: "Failed to generate answer" })}\n\n`);
+    console.error("CHAT.CONTROLLER ERROR:", err);
+    res.write(
+      `data: ${JSON.stringify({
+        error: "Failed to generate answer",
+        message: err.message,
+        stack: err.stack,
+      })}\n\n`
+    );
     res.write("data: [DONE]\n\n");
     res.end();
   }

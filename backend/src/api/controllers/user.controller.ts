@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 
 export async function updateAvatar(req: Request, res: Response) {
-  const uid = (req as any).userToken as string;
+  const uid = req.cookies?.uid as string;
 
   if (!uid) return res.status(400).json({ error: "Missing user token" });
 
@@ -19,7 +19,7 @@ export async function updateAvatar(req: Request, res: Response) {
 }
 
 export async function getUser(req: Request, res: Response) {
-  const uid = (req as any).userToken as string;
+  const uid = req.cookies?.uid as string;
 
   if (!uid) return res.status(400).json({ error: "Missing user token" });
 
@@ -32,7 +32,7 @@ export async function getUser(req: Request, res: Response) {
 
 export async function userLimit(req: Request, res: Response) {
   try {
-    const uid = (req as any).userToken as string;
+    const uid = req.cookies?.uid as string;
 
     if (!uid) {
       return res.status(400).json({ error: "Missing user token" });
