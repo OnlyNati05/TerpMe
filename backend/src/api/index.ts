@@ -15,6 +15,18 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use((req, res, next) => {
+  if (!req.cookies.uid) {
+    res.cookie("uid", crypto.randomUUID(), {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+    });
+  }
+  next();
+});
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(helmet());
 app.use(morgan("dev"));
