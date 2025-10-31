@@ -60,9 +60,10 @@ export default function ChatPage({
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<any>(null);
   const [limitError, setLimitError] = useState<string | null>(null);
-  const controllerRef = useRef<AbortController | null>(null);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const controllerRef = useRef<AbortController | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isListening, transcript, startListening, stoptListening } =
     useSpeechRecognition();
@@ -78,6 +79,14 @@ export default function ChatPage({
     );
     stoptListening();
   };
+
+  function scrollToBottom() {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [conv]);
 
   // Get user Limit
   useEffect(() => {
@@ -339,6 +348,7 @@ export default function ChatPage({
               }}
             />
           ))}
+          <div ref={messagesEndRef}></div>
         </div>
         <div className="w-20 mx-35">
           {sending && (
