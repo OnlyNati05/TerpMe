@@ -14,10 +14,12 @@ const app = express();
 
 // Middleware
 
-let allowedOrigin = FRONTEND_URL;
-if (allowedOrigin.endsWith("/")) {
-  allowedOrigin = allowedOrigin.slice(0, -1);
-}
+let allowedOrigin = [
+  FRONTEND_URL.replace(/\/$/, ""),
+  "https://www.terrpme.com",
+  "https://terrpme.com",
+  "https://terpme.vercel.app",
+];
 
 app.use(express.json());
 app.use(cookieParser());
@@ -35,7 +37,17 @@ app.use((req, res, next) => {
 });
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigin.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked from origin: ${origin}`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
