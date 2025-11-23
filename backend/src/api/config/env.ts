@@ -3,7 +3,7 @@ import { mustGetEnv } from "../utils/get.env";
 import path from "path";
 
 config({
-  path: path.resolve(__dirname, `../../../.env.${process.env.NODE_ENV || "development"}.local`),
+  path: path.resolve(__dirname, `../../../../.env.${process.env.NODE_ENV || "development"}.local`),
 });
 
 export const PORT = process.env.PORT;
