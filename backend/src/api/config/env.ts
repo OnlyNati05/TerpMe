@@ -1,11 +1,7 @@
 import { config } from "dotenv";
 import { mustGetEnv } from "../utils/get.env";
-import path from "path";
 
-config({
-  path: path.resolve(__dirname, `../../../../.env.${process.env.NODE_ENV || "development"}.local`),
-  override: true,
-});
+config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 export const PORT = process.env.PORT;
 export const NODE_ENV = process.env.NODE_ENV;
