@@ -1,11 +1,11 @@
 name: Daily UMD Pipeline
 
 on:
-  # Lets you click "Run workflow" manually.
   workflow_dispatch:
 
-  # Runs once every day.
   schedule:
+    # Every day at 10:17 UTC
+    # 6:17 AM EDT / 5:17 AM EST
     - cron: "17 10 * * *"
 
 permissions:
@@ -19,39 +19,45 @@ jobs:
   run-pipeline:
     name: Crawl and index pages
     runs-on: ubuntu-latest
-
-    # Stops a stuck job after 30 minutes.
     timeout-minutes: 30
 
-  env:
-    NODE_ENV: production
+    defaults:
+      run:
+        working-directory: backend
 
-    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    env:
+      NODE_ENV: production
 
-    QDRANT_URL: postgresql://neondb_owner:npg_Ksyzj2fTRbk8@ep-flat-morning-adjxlp76-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require?connect_timeout=0?pool_timeout=0
-    QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
-    QDRANT_COLLECTION_NAME: umd_docs
-    QDRANT_VECTOR_SIZE: 1536
-    QDRANT_DISTANCE: Cosine
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    OPENAI_EMBEDDING_MODEL: text-embedding-3-small
-    OPENAI_CHAT_MODEL: gpt-5.6-luna
+      QDRANT_URL: ${{ secrets.QDRANT_URL }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+      QDRANT_COLLECTION_NAME: ${{ vars.QDRANT_COLLECTION_NAME }}
+      QDRANT_VECTOR_SIZE: ${{ vars.QDRANT_VECTOR_SIZE }}
+      QDRANT_DISTANCE: ${{ vars.QDRANT_DISTANCE }}
 
-    FRONTEND_URL: https://terrpme.com
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_EMBEDDING_MODEL: ${{ vars.OPENAI_EMBEDDING_MODEL }}
+      OPENAI_CHAT_MODEL: ${{ vars.OPENAI_CHAT_MODEL }}
+
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
 
     steps:
       - name: Download repository
         uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: backend/.nvmrc
           cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Run daily pipeline
         run: npm run pipeline
