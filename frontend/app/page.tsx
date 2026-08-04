@@ -39,7 +39,7 @@ export default function Home() {
   const stopVoiceInput = () => {
     setInput(
       (prev) =>
-        prev + (transcript.length ? (prev.length ? " " : "") + transcript : "")
+        prev + (transcript.length ? (prev.length ? " " : "") + transcript : ""),
     );
     stoptListening();
   };
@@ -205,7 +205,7 @@ export default function Home() {
                 disabled={!!userLimit}
               >
                 <Brain size={16} />
-                <span>GPT 4o-mini</span>
+                <span>GPT-5.6 Luna</span>
               </PromptInputButton>
             </PromptInputTools>
             <PromptInputSubmit

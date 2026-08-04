@@ -1,7 +1,7 @@
 // components/sidebar-layout.tsx
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { AppSidebar } from "@/components/ui/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { BsLayoutSidebar } from "react-icons/bs";
@@ -15,26 +15,14 @@ export default function SidebarLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const hasAnimatedOnce = useRef(false);
-
-  useEffect(() => {
-    if (sidebarOpen && !hasAnimatedOnce.current) {
-      const timer = setTimeout(() => {
-        hasAnimatedOnce.current = true;
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [sidebarOpen]);
-
-  const entranceDuration = hasAnimatedOnce.current ? 0.3 : 0.6;
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Left column */}
 
       <div
-        className={`flex m-7 flex-col transition-all duration-300 ${
-          sidebarOpen ? "w-[21%] min-w-[200px] max-w-[600px]" : "w-[80px]"
+        className={`m-7 flex h-[calc(100vh-3.5rem)] flex-none flex-col overflow-hidden transition-[width] duration-300 ease-out motion-reduce:transition-none ${
+          sidebarOpen ? "w-[clamp(200px,21vw,600px)]" : "w-[70px]"
         }`}
       >
         {/* Title + Toggle */}
@@ -42,32 +30,35 @@ export default function SidebarLayout({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={`flex items-center bg-sidebar scale-99 rounded-2xl shadow-md border dark:border-none border-gray-200
-          transition-all duration-300
-          ${
-            sidebarOpen
-              ? "px-4 py-4 justify-between"
-              : "px-1 py-1 justify-center"
-          }`}
+          className="flex h-[68px] shrink-0 items-center justify-between overflow-hidden rounded-2xl mb-2 border border-gray-200 dark:border-black/50 bg-sidebar px-4  dark:border-none"
         >
-          {/* Title only when open */}
-          {sidebarOpen && (
-            <Link href="/" className="cursor-pointer">
+          <Link
+            href="/"
+            aria-hidden={!sidebarOpen}
+            tabIndex={sidebarOpen ? 0 : -1}
+            className={`min-w-0 overflow-hidden transition-[max-width,opacity] duration-200 motion-reduce:transition-none ${
+              sidebarOpen ? "max-w-[150px] opacity-100" : "max-w-0 opacity-0"
+            }`}
+          >
+            <div className="flex w-full gap-2 items-center justify-center">
               <Image
-                src="/logo/TerpMe-Logo.svg"
-                alt="TerpMe banner"
-                className="w-full max-w-[150px] ml-0 cursor-pointer"
+                src="/logo/favicon.svg"
+                alt="TerpMe logo"
+                className="size-9 max-w-none"
                 width={200}
                 height={200}
               />
-            </Link>
-          )}
+              <h1 className="font-chillax font-semibold text-[28px] text-blue-500">
+                TerpMe
+              </h1>
+            </div>
+          </Link>
 
           {/* Toggle button */}
           <button
             onClick={() => setSidebarOpen((prev) => !prev)}
             title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 transition"
+            className="shrink-0 rounded-full p-2 transition-colors hover:bg-gray-200 dark:hover:bg-neutral-700"
             aria-expanded={sidebarOpen}
           >
             <BsLayoutSidebar className="h-5 w-5 text-gray-800 dark:text-white cursor-pointer" />
@@ -78,22 +69,20 @@ export default function SidebarLayout({
           {sidebarOpen && (
             <motion.div
               key="sidebar-container"
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0 }}
               animate={{
                 opacity: 1,
-                x: 0,
-                transition: { duration: entranceDuration, ease: "easeInOut" },
+                transition: { duration: 0.2, delay: 0.1, ease: "easeOut" },
               }}
               exit={{
                 opacity: 0,
-                x: -10,
-                transition: { duration: 0.3, ease: "easeInOut" },
+                transition: { duration: 0.15, ease: "easeOut" },
               }}
-              className="max-h-[calc(100vh-120px)] scale-97 min-h-[170px] w-full rounded-2xl shadow-md overflow-hidden"
+              className="min-h-0 flex-1 overflow-hidden"
             >
-              <SidebarProvider>
+              <SidebarProvider className="h-full min-h-0">
                 <AppSidebar
-                  className="w-full !h-[calc(100vh-120px)] p-2"
+                  className="h-full min-h-0 w-full rounded-2xl border-1 border-gray-200 p-2  will-change-opacity dark:border-black/50"
                   variant="floating"
                   collapsible="none"
                 />

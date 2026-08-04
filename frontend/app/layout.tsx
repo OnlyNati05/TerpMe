@@ -4,11 +4,52 @@ import "./globals.css";
 import SidebarLayout from "@/components/sidebar-layout";
 import IconBar from "@/components/icon-bar";
 import { Toaster } from "sonner";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+});
+
+export const chillaxFont = localFont({
+  src: [
+    {
+      path: "../public/fonts/Chillax-Regular.woff2",
+      weight: "400",
+    },
+    {
+      path: "../public/fonts/Chillax-Medium.woff2",
+      weight: "500",
+    },
+    {
+      path: "../public/fonts/Chillax-Semibold.woff2",
+      weight: "600",
+    },
+    {
+      path: "../public/fonts/Chillax-Bold.woff2",
+      weight: "700",
+    },
+  ],
+  variable: "--font-chillax",
+});
+
+export const pallyFont = localFont({
+  src: [
+    {
+      path: "../public/fonts/Pally-Bold.woff2",
+      weight: "600",
+    },
+    {
+      path: "../public/fonts/Pally-Medium.woff2",
+      weight: "500",
+    },
+    {
+      path: "../public/fonts/Pally-Regular.woff2",
+      weight: "400",
+    },
+  ],
+  variable: "--font-pally",
 });
 
 const geistMono = Geist_Mono({
@@ -32,7 +73,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
+        className={`${pallyFont.variable} ${chillaxFont.variable} ${geistSans.variable} ${geistMono.variable} antialiased transition-colors duration-300`}
       >
         <ThemeProvider
           attribute="class"

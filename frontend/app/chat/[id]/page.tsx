@@ -75,7 +75,7 @@ export default function ChatPage({
   const stopVoiceInput = () => {
     setInput(
       (prev) =>
-        prev + (transcript.length ? (prev.length ? " " : "") + transcript : "")
+        prev + (transcript.length ? (prev.length ? " " : "") + transcript : ""),
     );
     stoptListening();
   };
@@ -187,7 +187,7 @@ export default function ChatPage({
                 } as Msg,
               ],
             }
-          : prev
+          : prev,
       );
 
       const reader = resp.body.getReader();
@@ -239,10 +239,10 @@ export default function ChatPage({
                     ? {
                         ...prev,
                         messages: prev.messages.map((m) =>
-                          m.id === msgId ? { ...m, metadata: json } : m
+                          m.id === msgId ? { ...m, metadata: json } : m,
                         ),
                       }
-                    : prev
+                    : prev,
                 );
                 return;
               }
@@ -258,10 +258,10 @@ export default function ChatPage({
                   messages: prev.messages.map((m) =>
                     m.id === msgId
                       ? { ...m, content: (m.content || "") + payload }
-                      : m
+                      : m,
                   ),
                 }
-              : prev
+              : prev,
           );
         }
       }
@@ -302,7 +302,7 @@ export default function ChatPage({
               } as Msg,
             ],
           }
-        : prev
+        : prev,
     );
 
     try {
@@ -310,7 +310,7 @@ export default function ChatPage({
     } catch (err: any) {
       if (err?.response?.status === 429) {
         setLimitError(
-          err.response.data?.error || "Daily message limit reached."
+          err.response.data?.error || "Daily message limit reached.",
         );
       } else {
         setErr(err?.response?.data ?? err);
@@ -337,7 +337,7 @@ export default function ChatPage({
               sending={sending}
               onRetry={() => {
                 const index = conv?.messages.findIndex(
-                  (msg) => msg.id === m.id
+                  (msg) => msg.id === m.id,
                 );
                 if (index && index > 0) {
                   const prevUserMsg = conv.messages[index - 1];
@@ -416,7 +416,7 @@ export default function ChatPage({
                   disabled={!!limitError}
                 >
                   <Brain size={16} />
-                  <span>GPT 4o-mini</span>
+                  <span>GPT-5.6 Luna</span>
                 </PromptInputButton>
               </PromptInputTools>
               <PromptInputSubmit
