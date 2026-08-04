@@ -10,8 +10,10 @@ export const handler = async () => {
 };
 
 if (require.main === module) {
+  console.time("myFunctionTimer");
   handler().then(() => {
     console.log("All done ✅");
+    console.timeEnd("myFunctionTimer");
     process.exit(0);
   });
 }

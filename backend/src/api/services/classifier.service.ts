@@ -9,7 +9,7 @@ import { openai, CHAT_MODEL } from "../lib/openai";
 export async function classifyQuestion(question: string): Promise<"UMD" | "GENERAL"> {
   const completion = await openai.chat.completions.create({
     model: CHAT_MODEL,
-    temperature: 0,
+    // temperature: 0,
     messages: [
       {
         role: "system",

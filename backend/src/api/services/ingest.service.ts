@@ -31,9 +31,9 @@ export async function ingestUrls(urls: string[]) {
       // Only scrape if not already indexed
       const result = await scrapeUrl(url);
 
-      if (!result) {
+      if (!result.length) {
         success = "partial";
-        report.push({ url, action: "error", reason: result });
+        report.push({ url, action: "error", reason: "Scraping returned no content" });
         await prisma.page.upsert({
           where: { url },
           update: { status: "skipped", lastIndexAt: new Date(), chunkCount: 0 },

@@ -16,7 +16,7 @@ User message:
     model: OPENAI_CHAT_MODEL,
     messages: [{ role: "user", content: prompt }],
     max_completion_tokens: 20,
-    temperature: 0.5,
+    // temperature: 0.5,
   });
 
   return completion.choices[0]?.message?.content?.trim() || "New Conversation";

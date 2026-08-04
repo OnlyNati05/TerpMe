@@ -169,7 +169,7 @@ async function normalLLMAnswer(
   const completion = await openai.chat.completions.create({
     model: CHAT_MODEL,
     messages: [{ role: "user", content: question }],
-    temperature: 0.7,
+    // temperature: 0.7,
   });
 
   const answer = completion.choices[0]?.message?.content?.trim() ?? "";
@@ -325,7 +325,7 @@ export async function askQuestion(
     const completion = await openai.chat.completions.create({
       model: CHAT_MODEL,
       messages,
-      temperature: 0.7,
+      // temperature: 0.7,
       stream: true,
     });
 
@@ -398,7 +398,7 @@ export async function askQuestion(
   const completion = await openai.chat.completions.create({
     model: CHAT_MODEL,
     messages,
-    temperature: 0.5,
+    // temperature: 0.5,
     max_completion_tokens: 500,
     stream: true,
   });

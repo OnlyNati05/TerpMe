@@ -101,7 +101,7 @@ export async function scrapeCheerio(url: string) {
 
     return final;
   } catch (err) {
-    console.error("Cheerio scrape failed:", err);
+    console.error(`Cheerio scrape failed for ${url}:`, err);
     return [];
   }
 }
