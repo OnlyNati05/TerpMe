@@ -17,6 +17,7 @@ const app = express();
 let allowedOrigin = [
   FRONTEND_URL.replace(/\/$/, ""),
   "https://www.terrpme.com",
+  "https://www.terrpme.com/",
   "https://terrpme.com",
   "https://terpme.vercel.app",
 ];
@@ -46,6 +47,7 @@ app.use(
         return callback(null, true);
       }
 
+      console.error("CORS rejected origin:", origin);
       return callback(new Error(`CORS blocked from origin: ${origin}`));
     },
     credentials: true,
