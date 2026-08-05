@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { FRONTEND_URL, PORT } from "./config/env";
+import { FRONTEND_URL } from "./config/env";
 import chatRouter from "./routes/chat";
 import pageRouter from "./routes/page";
 import userRouter from "./routes/user";
@@ -72,7 +72,4 @@ app.use("/chat", chatRouter);
 app.use("/conversations", conversationRoutes);
 app.use("/user", userRouter);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+export default app;

@@ -4,9 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon ./src/api/index.ts",
+    "dev": "nodemon ./src/server.ts",
     "prestart": "npm run build",
-    "start": "node ./dist/src/api/index.js",
+    "start": "node ./dist/src/server.js",
     "build": "tsc --build",
     "dev:migrate": "dotenv -e .env.development.local -- prisma migrate dev",
     "dev:generate": "dotenv -e .env.development.local -- prisma generate",
@@ -33,7 +33,6 @@
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
     "openai": "^5.10.2",
-    "puppeteer": "^24.15.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -43,7 +42,6 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
-    "@types/puppeteer": "^5.4.7",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "dotenv-cli": "^10.0.0",
