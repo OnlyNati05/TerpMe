@@ -54,6 +54,7 @@
     "prisma": "^6.14.0",
     "serverless-esbuild": "^1.55.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.23.5",
     "typescript": "^5.8.3"
   }
 }
