@@ -1,13 +1,14 @@
 // components/sidebar-layout.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/ui/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { BsLayoutSidebar } from "react-icons/bs";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function SidebarLayout({
   children,
@@ -15,14 +16,38 @@ export default function SidebarLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [isMobile]);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-dvh min-w-0 overflow-hidden">
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          title="Open sidebar"
+          aria-label="Open sidebar"
+          className="fixed left-3 top-3 z-40 rounded-xl border border-gray-200 bg-background p-2.5 shadow-sm md:hidden"
+        >
+          <BsLayoutSidebar className="h-5 w-5" />
+        </button>
+      )}
+      {sidebarOpen && (
+        <button
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] md:hidden"
+        />
+      )}
       {/* Left column */}
 
       <div
-        className={`m-7 flex h-[calc(100vh-3.5rem)] flex-none flex-col overflow-hidden transition-[width] duration-300 ease-out motion-reduce:transition-none ${
-          sidebarOpen ? "w-[clamp(200px,21vw,600px)]" : "w-[70px]"
+        className={`fixed inset-y-3 left-3 z-50 flex h-[calc(100dvh-1.5rem)] w-[min(85vw,320px)] flex-none flex-col overflow-hidden transition-transform duration-300 ease-out motion-reduce:transition-none md:static md:z-auto md:m-7 md:h-[calc(100vh-3.5rem)] md:transition-[width] ${
+          sidebarOpen
+            ? "translate-x-0 md:w-[clamp(200px,21vw,600px)]"
+            : "-translate-x-[calc(100%+1rem)] md:w-[70px] md:translate-x-0"
         }`}
       >
         {/* Title + Toggle */}
@@ -96,9 +121,9 @@ export default function SidebarLayout({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
-        className="flex-1 overflow-y-auto"
+        className="min-w-0 flex-1 overflow-y-auto"
       >
-        <div>{children}</div>
+        <div className="min-h-full min-w-0">{children}</div>
       </motion.div>
     </div>
   );

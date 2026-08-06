@@ -7,13 +7,13 @@ export default function IconBar() {
     <div>
       <IoLogoGithub
         size={31}
-        className="fixed right-10 top-5 text-gray-500 hover:text-black transition-colors duration-300 cursor-pointer dark:hover:text-white dark:text-neutral-400"
+        className="fixed right-3 top-4 z-30 cursor-pointer text-gray-500 transition-colors duration-300 hover:text-black sm:right-10 sm:top-5 dark:text-neutral-400 dark:hover:text-white"
         onClick={() =>
           window.open("https://github.com/OnlyNati05/TerpMe.git", "_blank")
         }
       ></IoLogoGithub>
-      <div className="fixed border-l border-r-[0.1] border-gray-200 h-7 right-20 top-6 dark:border-neutral-600" />
-      <div className="fixed right-23 top-[26] z-50">
+      <div className="fixed right-12 top-5 z-30 h-7 border-l border-gray-200 sm:right-20 sm:top-6 dark:border-neutral-600" />
+      <div className="fixed right-14 top-[21px] z-30 sm:right-23 sm:top-[26px]">
         <ThemeToggle></ThemeToggle>
       </div>
     </div>

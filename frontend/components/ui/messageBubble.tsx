@@ -127,13 +127,13 @@ export default function MessageBubble({
       } mb-10 ${className ?? ""}`}
     >
       <div
-        className={`max-w-[80%] rounded-2xl leading-relaxed px-4 py-2 whitespace-pre-wrap 
+        className={`max-w-[92%] break-words rounded-2xl px-3 py-2 leading-relaxed whitespace-pre-wrap sm:max-w-[80%] sm:px-4
           ${isUser ? "bg-input text-foreground" : "bg-background"}`}
       >
         <Response>{fixStreamingMarkdownLists(content || "")}</Response>
       </div>
       {!isUser && !(isLast && streaming) && (
-        <div className="flex items-center">
+        <div className="flex flex-wrap items-center">
           <div className="px-1 w-auto relative">
             <div className="flex items-center justify-start gap-1">
               <Actions>

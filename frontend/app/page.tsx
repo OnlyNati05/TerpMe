@@ -79,28 +79,28 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center">
+    <div className="flex min-h-dvh items-center justify-center px-3 py-20 sm:px-6 md:py-8">
       <div
-        className={`flex flex-col items-center gap-4 p-8 bg-[rgb(250,250,250)] rounded-2xl border-1 border-gray-200 shadow-[0_4px_60px_rgba(0,0,0,0.08)] transition-all duration-300 dark:bg-neutral-800 dark:border-none ${
+        className={`flex w-full max-w-[850px] flex-col items-center gap-4 rounded-2xl border border-gray-200 bg-[rgb(250,250,250)] p-4 shadow-[0_4px_60px_rgba(0,0,0,0.08)] transition-all duration-300 sm:p-6 md:p-8 dark:border-none dark:bg-neutral-800 ${
           isCreating ? "opacity-70 pointer-events-none" : "opacity-100"
         }`}
       >
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+        <h1 className="text-center text-xl font-bold text-gray-800 sm:text-2xl dark:text-white">
           Welcome Terp, how can I help?
         </h1>
-        <p className="text-center text-sm text-gray-600 dark:text-gray-300 max-w-[500px] mx-auto mb-6">
+        <p className="mx-auto mb-2 max-w-[500px] text-center text-sm text-gray-600 sm:mb-6 dark:text-gray-300">
           TerpMe is a tool for students at the University of Maryland to help
           them keep up to date with the latest news. Try one of the prompts
           below!
         </p>
         {/* Prompts */}
-        <div className="flex flex-row justify-between w-full gap-3 mb-14">
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 md:mb-10">
           <div
             onClick={() => {
               if (userLimit) return;
               createConversation(prompts.prompt1);
             }}
-            className="text-center bg-blue-50 p-5 rounded-2xl hover:bg-blue-100 hover:shadow-sm dark:bg-neutral-700 dark:hover:bg-neutral-600 cursor-pointer transition-transform duration-300 border-1 shadow-xs w-[250px]"
+            className="w-full cursor-pointer rounded-2xl border bg-blue-50 p-4 text-center shadow-xs transition-transform duration-300 hover:bg-blue-100 hover:shadow-sm sm:p-5 dark:bg-neutral-700 dark:hover:bg-neutral-600"
           >
             <p className="text-[17px] mb-3 flex items-center justify-center gap-2 text-black dark:text-white">
               <Volleyball className="h-5 w-5 text-blue-600 dark:text-blue-500" />
@@ -116,7 +116,7 @@ export default function Home() {
               if (userLimit) return;
               createConversation(prompts.prompt2);
             }}
-            className="text-center bg-blue-50 p-5 rounded-2xl hover:bg-blue-100 dark:bg-neutral-700 dark:hover:bg-neutral-600 hover:shadow-sm cursor-pointer transition-all duration-300 border-1 shadow-xs w-[250px]"
+            className="w-full cursor-pointer rounded-2xl border bg-blue-50 p-4 text-center shadow-xs transition-all duration-300 hover:bg-blue-100 hover:shadow-sm sm:p-5 dark:bg-neutral-700 dark:hover:bg-neutral-600"
           >
             <p className="text-[16px] mb-3 flex items-center justify-center gap-2 text-black dark:text-white">
               <Newspaper className="h-5 w-5 text-blue-600 dark:text-blue-500" />
@@ -132,7 +132,7 @@ export default function Home() {
               if (userLimit) return;
               createConversation(prompts.prompt3);
             }}
-            className="text-center bg-blue-50 p-5 rounded-2xl hover:bg-blue-100 dark:bg-neutral-700 dark:hover:bg-neutral-600 hover:shadow-sm cursor-pointer transition-all duration-300 border-1 shadow-xs w-[250px]"
+            className="w-full cursor-pointer rounded-2xl border bg-blue-50 p-4 text-center shadow-xs transition-all duration-300 hover:bg-blue-100 hover:shadow-sm sm:p-5 dark:bg-neutral-700 dark:hover:bg-neutral-600"
           >
             <p className="text-[16px] mb-3 flex items-center justify-center gap-2 text-black dark:text-white">
               <Megaphone className="h-5 w-5 text-blue-600 dark:text-blue-500" />
@@ -205,7 +205,7 @@ export default function Home() {
                 disabled={!!userLimit}
               >
                 <Brain size={16} />
-                <span>GPT-5.6 Luna</span>
+                <span className="hidden sm:inline">GPT-5.6 Luna</span>
               </PromptInputButton>
             </PromptInputTools>
             <PromptInputSubmit

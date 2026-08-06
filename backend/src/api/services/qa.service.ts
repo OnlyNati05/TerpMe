@@ -46,12 +46,32 @@ export async function searchQdrant(
   }
 
   // Run Qdrant search
-  const hits = await qdrant.search(QDRANT_COLLECTION_NAME, {
-    vector: queryEmbedding,
-    limit,
-    with_payload: true,
-    ...(filter.must.length ? { filter } : {}),
-  });
+  let hits: Awaited<ReturnType<typeof qdrant.search>>;
+
+  try {
+    hits = await qdrant.search(QDRANT_COLLECTION_NAME, {
+      vector: queryEmbedding,
+      limit,
+      with_payload: true,
+      ...(filter.must.length ? { filter } : {}),
+    });
+  } catch (error: unknown) {
+    const qdrantError = error as {
+      message?: string;
+      status?: number;
+      data?: unknown;
+    };
+
+    console.error("Qdrant search failed", {
+      message: qdrantError.message,
+      status: qdrantError.status,
+      data: qdrantError.data,
+      collection: QDRANT_COLLECTION_NAME,
+      embeddingDimensions: queryEmbedding.length,
+      filter,
+    });
+    throw error;
+  }
 
   return hits
     .map((h) => ({

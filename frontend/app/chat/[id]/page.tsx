@@ -319,12 +319,12 @@ export default function ChatPage({
   }
 
   return (
-    <div className="flex flex-col flex-1 h-screen overflow-hidden">
+    <div className="flex h-dvh min-w-0 flex-1 flex-col overflow-hidden">
       {/* Messages area */}
-      <h1 className="relative top-6 right-16 text-center text-[15px] font-medium ">
+      <h1 className="mx-14 mt-5 truncate text-center text-[15px] font-medium sm:mx-24 sm:mt-6">
         {conv?.title}
       </h1>
-      <div className="flex-1 overflow-y-auto px-6 py-12 mt-12">
+      <div className="mt-4 flex-1 overflow-y-auto px-3 py-6 sm:mt-8 sm:px-6 sm:py-10">
         <div className="max-w-3xl mx-auto w-full space-y-3">
           {conv?.messages.map((m, i) => (
             <MessageBubble
@@ -350,15 +350,15 @@ export default function ChatPage({
           ))}
           <div ref={messagesEndRef}></div>
         </div>
-        <div className="w-20 mx-35">
+        <div className="mx-auto w-full max-w-3xl px-4">
           {sending && (
             <PulseLoader color="#d4d2d2" size={10} speedMultiplier={0.7} />
           )}
         </div>
       </div>
 
-      <div className="sticky bottom-0">
-        <div className="max-w-[800px] mx-auto w-full pb-8">
+      <div className="sticky bottom-0 bg-background/90 px-3 pt-2 backdrop-blur sm:px-6">
+        <div className="mx-auto w-full max-w-[800px] pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-8">
           <PromptInput
             onSubmit={async (e) => {
               e.preventDefault();
@@ -416,7 +416,7 @@ export default function ChatPage({
                   disabled={!!limitError}
                 >
                   <Brain size={16} />
-                  <span>GPT-5.6 Luna</span>
+                  <span className="hidden sm:inline">GPT-5.6 Luna</span>
                 </PromptInputButton>
               </PromptInputTools>
               <PromptInputSubmit

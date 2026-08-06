@@ -13,8 +13,17 @@ async function main() {
     });
   }
 
-  //Get collection and log for verification
+  // Qdrant requires a datetime payload index before date_iso can be used in a range filter.
   const details = await qdrant.getCollection(QDRANT_COLLECTION_NAME);
+  const dateIndex = details.payload_schema?.date_iso;
+
+  if (dateIndex?.data_type !== "datetime") {
+    await qdrant.createPayloadIndex(QDRANT_COLLECTION_NAME, {
+      wait: true,
+      field_name: "date_iso",
+      field_schema: "datetime",
+    });
+  }
 }
 
 main()
