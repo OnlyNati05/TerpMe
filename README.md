@@ -1,6 +1,6 @@
 <div align="center">
 
-# TerpMe
+<h1><img src="frontend/public/logo/favicon.svg" alt="TerpMe logo" height="42" align="center"> TerpMe</h1>
 
 ### The AI News Assistant for UMD Students
 
