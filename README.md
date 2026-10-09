@@ -10,6 +10,22 @@ TerpMe brings University of Maryland news, events, sports, and student-life upda
 
 ---
 
+## Table of Contents
+
+- [What TerpMe Does](#what-terpme-does)
+- [How It Works](#how-it-works)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Clone and install](#1-clone-and-install)
+  - [Configure the backend](#2-configure-the-backend)
+  - [Configure the frontend](#3-configure-the-frontend)
+  - [Start the app](#4-start-the-app)
+- [Useful Commands](#useful-commands)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+
 ## What TerpMe Does
 
 Keeping up with campus information should not mean searching across dozens of websites. TerpMe continuously collects and indexes UMD content, retrieves the sources most relevant to a student's question, and uses AI to turn them into a useful response.
