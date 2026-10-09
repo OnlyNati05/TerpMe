@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src="frontend/public/logo/favicon.svg" alt="TerpMe logo" height="42" align="center"> TerpMe</h1>
+<h1>TerpMe</h1>
 
 ### The AI News Assistant for UMD Students
 
@@ -36,13 +36,13 @@ flowchart LR
 
 ## Tech Stack
 
-| Area | Technologies |
-| --- | --- |
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui, SWR |
-| Backend | Node.js, Express 5, TypeScript, Server-Sent Events |
-| AI and retrieval | OpenAI, Qdrant |
-| Data | PostgreSQL, Prisma ORM |
-| Deployment | Vercel, AWS Lambda, Serverless Framework |
+| Area             | Technologies                                                   |
+| ---------------- | -------------------------------------------------------------- |
+| Frontend         | Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui, SWR |
+| Backend          | Node.js, Express 5, TypeScript, Server-Sent Events             |
+| AI and retrieval | OpenAI, Qdrant                                                 |
+| Data             | PostgreSQL, Prisma ORM                                         |
+| Deployment       | Vercel, AWS Lambda, Serverless Framework                       |
 
 ## Project Structure
 
@@ -141,14 +141,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. The API run
 
 ## Useful Commands
 
-| Command | Location | Purpose |
-| --- | --- | --- |
-| `npm run dev` | `frontend/` | Start the Next.js development server |
-| `npm run dev` | `backend/` | Start the API with automatic reloads |
-| `npm run build` | Either app | Create a production build |
-| `npm run lint` | Either app | Run the configured linter |
-| `npm run pipeline` | `backend/` | Run the content ingestion pipeline |
-| `npm run qdrant:init` | `backend/` | Create and configure the Qdrant collection |
+| Command               | Location    | Purpose                                    |
+| --------------------- | ----------- | ------------------------------------------ |
+| `npm run dev`         | `frontend/` | Start the Next.js development server       |
+| `npm run dev`         | `backend/`  | Start the API with automatic reloads       |
+| `npm run build`       | Either app  | Create a production build                  |
+| `npm run lint`        | Either app  | Run the configured linter                  |
+| `npm run pipeline`    | `backend/`  | Run the content ingestion pipeline         |
+| `npm run qdrant:init` | `backend/`  | Create and configure the Qdrant collection |
 
 ## Roadmap
 
