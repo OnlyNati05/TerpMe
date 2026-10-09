@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import express from "express";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { FRONTEND_URL, PORT } from "./api/config/env";
